@@ -1,0 +1,30 @@
+
+sequenceDiagram
+  actor U as User
+  participant UI as Browser
+  participant CC as CheckoutController
+  participant OS as OrderService
+  participant PS as PaymentService
+  participant OR as OrderRepository
+  participant PG as PaymentGateway (Mock)
+
+  U->>UI: Proceed to Checkout
+  UI->>CC: POST /checkout (shippingAddress)
+  CC->>OS: createOrder(userId, cart, address)
+  OS->>OR: save(order, items)
+  OR-->>OS: orderId
+  OS-->>CC: order
+  CC->>PS: initiatePayment(orderId, total)
+  PS->>PG: charge(orderId, total)
+  alt Payment success
+    PG-->>PS: success(referenceId)
+    PS->>OR: updateStatus(orderId, PAID, referenceId)
+    OR-->>PS: updated
+    PS-->>CC: paymentResult(success)
+    CC-->>UI: 200 OK (order confirmation)
+  else Payment failed
+    PG-->>PS: failure(error)
+    PS->>OR: updateStatus(orderId, PAYMENT_FAILED)
+    PS-->>CC: paymentResult(failure)
+    CC-->>UI: 402 Payment Required (retry)
+  end

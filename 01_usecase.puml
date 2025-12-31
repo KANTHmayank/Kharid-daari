@@ -1,0 +1,50 @@
+
+@startuml
+left to right direction
+actor Customer as User
+actor "Payment Gateway" as PG
+
+rectangle EcommerceSystem {
+  usecase "Register" as UC1
+  usecase "Login" as UC2
+  usecase "Browse Products" as UC3
+  usecase "Filter/Sort Products" as UC4
+  usecase "Add to Cart" as UC5
+  usecase "View Cart" as UC6
+  usecase "Update Cart Qty/Remove" as UC7
+  usecase "Checkout" as UC8
+  usecase "Enter Shipping Details" as UC9
+  usecase "Billing Summary" as UC10
+  usecase "Review Order" as UC11
+  usecase "Make Payment (Simulated)" as UC12
+  usecase "Order Confirmation" as UC13
+  usecase "View Profile" as UC14
+  usecase "Update Profile" as UC15
+  usecase "View Order History" as UC16
+  usecase "Contact Us (Submit Query)" as UC17
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+User --> UC14
+User --> UC15
+User --> UC16
+User --> UC17
+
+UC12 --> PG : process payment
+UC13 <- UC12 : success
+note right of UC12
+Simulated gateway; no real transaction.
+end note
+@enduml

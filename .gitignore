@@ -1,0 +1,39 @@
+# Maven build artifacts
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# IDE files
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+.vscode/
+
+# Compiled files
+*.class
+*.war
+*.jar
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+optimization_summary.txt
+
+# Database credentials (sensitive)
+# Note: Create AppConfig.java.template for reference
+src/main/java/com/ecommerce/config/AppConfig.java

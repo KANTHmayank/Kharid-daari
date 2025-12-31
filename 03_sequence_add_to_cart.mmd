@@ -1,0 +1,29 @@
+
+sequenceDiagram
+  actor U as User
+  participant UI as Browser/UI
+  participant PC as ProductController
+  participant CS as CartService
+  participant PS as ProductService
+  participant CR as CartRepository
+  participant PR as ProductRepository
+
+  U->>UI: Click "Add to Cart" (productId, qty)
+  UI->>PC: POST /cart/add
+  PC->>PS: getProduct(productId)
+  PS->>PR: findById(productId)
+  PR-->>PS: Product
+  PS-->>PC: Product
+  PC->>CS: addItem(userId, product, qty)
+  CS->>CR: upsertCartItem(cartId, productId, qty, unitPrice)
+  CR-->>CS: CartItem saved
+  CS-->>PC: Cart totals
+  PC-->>UI: 200 OK (cart snapshot)
+  UI-->>U: Cart updated
+
+  alt Out of stock
+    PS-->>PC: Stock insufficient
+    PC-->>UI: 409 Conflict (message)
+  else Success
+    UI-->>U: Item added
+  end

@@ -1,0 +1,95 @@
+
+classDiagram
+  direction LR
+  class User {
+    +Long id
+    +String name
+    +String email
+    +String passwordHash
+    +String phone
+    +Date createdAt
+    +Date updatedAt
+  }
+  class Address {
+    +Long id
+    +Long userId
+    +String line1
+    +String line2
+    +String city
+    +String state
+    +String postalCode
+    +String country
+    +Boolean isDefault
+  }
+  class Product {
+    +Long id
+    +String sku
+    +String name
+    +String description
+    +BigDecimal price
+    +Integer stock
+    +String imageUrl
+    +Boolean active
+    +Date createdAt
+  }
+  class Cart {
+    +Long id
+    +Long userId
+    +BigDecimal total
+    +Date updatedAt
+  }
+  class CartItem {
+    +Long id
+    +Long cartId
+    +Long productId
+    +Integer quantity
+    +BigDecimal unitPrice
+    +BigDecimal lineTotal
+  }
+  class Order {
+    +Long id
+    +Long userId
+    +Long shippingAddressId
+    +BigDecimal subtotal
+    +BigDecimal tax
+    +BigDecimal shippingFee
+    +BigDecimal totalAmount
+    +String status
+    +Date createdAt
+  }
+  class OrderItem {
+    +Long id
+    +Long orderId
+    +Long productId
+    +Integer quantity
+    +BigDecimal unitPrice
+    +BigDecimal lineTotal
+  }
+  class Payment {
+    +Long id
+    +Long orderId
+    +String provider
+    +String referenceId
+    +String status
+    +Date paidAt
+  }
+  class ContactMessage {
+    +Long id
+    +String name
+    +String email
+    +String message
+    +Date createdAt
+    +String status
+  }
+
+  User "1" --> "*" Address : owns
+  User "1" --> "1" Cart : current
+  Cart "1" o-- "*" CartItem : contains
+  Product "1" --> "*" CartItem : referenced by
+
+  User "1" --> "*" Order : places
+  Order "1" o-- "*" OrderItem : contains
+  Product "1" --> "*" OrderItem : referenced by
+  Order "1" --> "1" Payment : paid by
+  Order "1" --> "1" Address : ships to
+  User "1" --> "*" ContactMessage : submits
