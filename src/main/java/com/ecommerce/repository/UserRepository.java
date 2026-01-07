@@ -32,10 +32,10 @@ public class UserRepository {
             user.setUpdatedAt(rs.getTimestamp("updated_at"));
             return user;
         }
-    };
-
-    public User save(User user) {
-        String sql = "INSERT INTO users (name, email, password_hash, phone) VALUES (?, ?, ?, ?)";
+    };    public User save(User user) {
+        // Explicitly include timestamps in INSERT to ensure they are always set
+        String sql = "INSERT INTO users (name, email, password_hash, phone, created_at, updated_at) " +
+                     "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
@@ -45,11 +45,14 @@ public class UserRepository {
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPasswordHash());
             ps.setString(4, user.getPhone());
+            // created_at and updated_at are set directly in SQL using CURRENT_TIMESTAMP
             return ps;
         }, keyHolder);
         
         user.setId(keyHolder.getKey().longValue());
-        return user;
+        
+        // Fetch the complete user data including timestamps
+        return findById(user.getId());
     }
 
     public User findByEmail(String email) {

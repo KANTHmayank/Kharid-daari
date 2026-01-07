@@ -441,6 +441,22 @@ body {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.form-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: #f87171;
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+    border-color: #34d399;
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 1.5rem;

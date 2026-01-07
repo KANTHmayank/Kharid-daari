@@ -50,16 +50,37 @@ public class AuthController {
     @GetMapping("/register")
     public String registerPage() {
         return "register";
-    }
-
-    @PostMapping("/register")
-    public String register(@RequestParam String name,
+    }    @PostMapping("/register")
+    public String register(@RequestParam String firstName,
+                          @RequestParam String lastName,
                           @RequestParam String email,
                           @RequestParam String password,
+                          @RequestParam String confirmPassword,
                           @RequestParam String phone,
                           Model model) {
         try {
-            User user = new User(name, email, password, phone);
+            // Server-side validation for phone number (exactly 10 digits)
+            if (!phone.matches("^[0-9]{10}$")) {
+                model.addAttribute("error", "Phone number must be exactly 10 digits");
+                return "register";
+            }
+
+            // Server-side validation for password strength
+            if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")) {
+                model.addAttribute("error", "Password must be at least 8 characters with uppercase, lowercase, number, and special character");
+                return "register";
+            }
+
+            // Check if passwords match
+            if (!password.equals(confirmPassword)) {
+                model.addAttribute("error", "Passwords do not match");
+                return "register";
+            }
+
+            // Combine first and last name
+            String fullName = firstName.trim() + " " + lastName.trim();
+            
+            User user = new User(fullName, email, password, phone);
             userService.register(user);
             
             model.addAttribute("success", "Registration successful! Please login.");

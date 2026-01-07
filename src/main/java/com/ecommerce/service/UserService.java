@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     @Autowired
-    private UserRepository userRepository;
-
+    private UserRepository userRepository;    
     public User register(User user) {
         // Check if email already exists
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already registered");
+        }
+
+        // Validate phone number format (exactly 10 digits)
+        if (user.getPhone() == null || !user.getPhone().matches("^[0-9]{10}$")) {
+            throw new RuntimeException("Phone number must be exactly 10 digits");
         }
 
         // Hash the password
