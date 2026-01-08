@@ -32,7 +32,9 @@ public class UserRepository {
             user.setUpdatedAt(rs.getTimestamp("updated_at"));
             return user;
         }
-    };    public User save(User user) {
+    };    
+    
+    public User save(User user) {
         // Explicitly include timestamps in INSERT to ensure they are always set
         String sql = "INSERT INTO users (name, email, password_hash, phone, created_at, updated_at) " +
                      "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";

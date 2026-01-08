@@ -14,6 +14,10 @@ A full-featured e-commerce web application built with **Spring MVC**, **JSP**, a
 - [Security](#-security)
 - [Testing](#-testing)
 - [Troubleshooting](#-troubleshooting)
+- [Spring Annotations Overview](#-spring-annotations-overview)
+- [Database & JDBC Driver](#-database--jdbc-driver)
+- [Enhanced Security Details](#-enhanced-security-details)
+- [Application Architecture Flow](#-application-architecture-flow)
 
 ---
 
@@ -264,31 +268,96 @@ SELECT email, LENGTH(password_hash) FROM users;
 
 ---
 
-## 📚 Additional Info
+## 🔧 Spring Annotations Overview
 
-**Architecture Diagrams:**
-- `01_usecase.puml` - Use cases
-- `02_class.mmd` - Classes
-- `03_sequence_add_to_cart.mmd` - Add to cart flow
-- `04_sequence_checkout.mmd` - Checkout flow
-- `05_erd.mmd` - Entity relationships
+**Configuration Layer:**
+- `@Configuration` - Defines Spring configuration class
+- `@EnableWebMvc` - Enables Spring MVC features
+- `@ComponentScan` - Scans for Spring components
+- `@Bean` - Defines managed beans (DataSource, JdbcTemplate, ViewResolver)
 
-**Development Commands:**
-```powershell
-mvn clean package      # Build
-mvn cargo:run          # Run
-mvn test               # Test
+**Web Layer:**
+- `@Controller` - Marks MVC controllers
+- `@RequestMapping` - Maps HTTP requests to methods
+- `@RequestParam` - Binds request parameters
+- `@ModelAttribute` - Binds objects from form data
+
+**Service Layer:**
+- `@Service` - Marks business logic classes
+
+**Data Layer:**
+- `@Repository` - Marks data access classes
+- `@Autowired` - Injects dependencies
+
+**All layers use `@Override` for interface implementations.**
+
+---
+
+## 🗄️ Database & JDBC Driver
+
+**JDBC Driver:** MySQL Connector/J 8.0.33 (`com.mysql.cj.jdbc.Driver`)
+- Type 4 pure Java driver for MySQL communication
+- Translates JDBC calls to MySQL protocol over TCP/IP
+- Handles connection pooling, prepared statements, and result sets
+
+**Connection URL:** `jdbc:mysql://localhost:3306/ecommerce?useSSL=false&serverTimezone=UTC`
+
+**Why PreparedStatement over Statement:**
+- **Security:** Prevents SQL injection attacks
+- **Performance:** Precompiled queries with cached execution plans
+- **Type Safety:** Automatic data type handling and character escaping
+- **Required for:** Auto-generated key retrieval (`RETURN_GENERATED_KEYS`)
+
+---
+
+## 🔐 Enhanced Security Details
+
+**Password Security:**
+- BCrypt hashing with adaptive cost factor (10 rounds)
+- Protects against rainbow table attacks
+- Industry-standard for password storage
+
+**SQL Injection Prevention:**
+```java
+// SECURE: Parameterized queries
+String sql = "SELECT * FROM users WHERE email = ?";
+jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, email);
+
+// VULNERABLE: String concatenation
+String sql = "SELECT * FROM users WHERE email = '" + email + "'"; // NEVER DO THIS
 ```
 
-**Database Queries:**
-```sql
-SELECT * FROM users;
-SELECT * FROM products;
-SELECT * FROM contact_messages;
+**Session Management:**
+- Server-side session storage
+- Automatic cleanup on logout
+- User data stored: ID, name, email
+
+---
+
+## 📊 Application Architecture Flow
+
+**Request Processing:**
 ```
+Browser → DispatcherServlet → Controller → Service → Repository → MySQL
+         ↓
+    ViewResolver → JSP → Response
+```
+
+**Data Flow (User Registration):**
+1. Form submission → `AuthController.register()`
+2. Validation → `UserService.register()`
+3. Password hash → `UserRepository.save()`
+4. SQL INSERT with `PreparedStatement`
+5. Retrieve generated ID → Return complete User object
+
+**Key Components:**
+- **Controllers:** 4 (Home, Auth, Contact, Product)
+- **Services:** 3 (User, Product, Contact)
+- **Repositories:** 4 (User, Product, Contact, shared templates)
+- **Models:** 4 (User, Product, ContactMessage, + future entities)
 
 ---
 
 **Version:** 1.0-SNAPSHOT  
-**Last Updated:** December 31, 2025  
+**Last Updated:** January 8, 2026  
 **License:** Educational/Evaluation purposes

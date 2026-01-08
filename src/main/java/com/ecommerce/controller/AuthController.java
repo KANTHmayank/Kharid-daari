@@ -50,7 +50,9 @@ public class AuthController {
     @GetMapping("/register")
     public String registerPage() {
         return "register";
-    }    @PostMapping("/register")
+    }    
+    
+    @PostMapping("/register")
     public String register(@RequestParam String firstName,
                           @RequestParam String lastName,
                           @RequestParam String email,
