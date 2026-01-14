@@ -17,20 +17,25 @@
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
-            flex-wrap: wrap;
+            border-bottom: 2px solid #eee;
         }
         .profile-tab {
             padding: 1rem 2rem;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
             cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
             transition: all 0.3s;
         }
+        .profile-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
         .profile-tab:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
+            color: #667eea;
         }
         .address-list {
             display: grid;
@@ -143,7 +148,7 @@
     <jsp:include page="includes/header.jsp" />
 
     <div class="profile-container">
-        <h2>My Addresses</h2>
+        <h2>My Profile</h2>
 
         <c:if test="${not empty success}">
             <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
@@ -158,10 +163,10 @@
         </c:if>
 
         <div class="profile-tabs">
-            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile'">Profile Details</button>
-            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile'">Edit Profile</button>
-            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile'">Change Password</button>
-            <button class="profile-tab" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: transparent;">Addresses</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#details'">Profile Details</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#edit'">Edit Profile</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#password'">Change Password</button>
+            <button class="profile-tab active">Addresses</button>
             <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile/orders'">Order History</button>
         </div>
 

@@ -122,13 +122,45 @@
             color: #667eea;
             margin-bottom: 1rem;
         }
+        .profile-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #eee;
+        }
+        .profile-tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .profile-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .profile-tab:hover {
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
     <jsp:include page="includes/header.jsp" />
 
     <div class="orders-container">
-        <h2>Order History</h2>
+        <h2>My Profile</h2>
+
+        <div class="profile-tabs">
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#details'">Profile Details</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#edit'">Edit Profile</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile#password'">Change Password</button>
+            <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile/addresses'">Addresses</button>
+            <button class="profile-tab active">Order History</button>
+        </div>
 
         <c:choose>
             <c:when test="${empty orders}">

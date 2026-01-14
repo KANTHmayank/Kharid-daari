@@ -24,16 +24,47 @@ A full-featured e-commerce web application built with **Spring MVC**, **JSP**, a
 ## 🚀 Features
 
 **Implemented** ✅
-- Home Page with featured products (6 items)
-- User Registration with BCrypt encryption
+
+### User Authentication & Profile Management
+- User Registration with comprehensive validation
+  - Email validation (proper domain format, no special char start)
+  - Name validation (first & last name, capital letter start, 2-50 chars)
+  - Phone validation (exactly 10 digits)
+  - Password strength requirements (8+ chars, uppercase, lowercase, digit, special char)
+  - Real-time password confirmation matching with visual feedback
 - User Login/Logout with session management
-- Product Catalog with images, prices, and stock
+- BCrypt password encryption (10 rounds)
+- User Profile Management
+  - View profile details (name, email, phone, member since)
+  - Edit profile (update first name, last name, email, phone)
+  - Change password with current password verification
+  - Address management (add, edit, delete, set default)
+  - Order history with detailed item information and status tracking
+
+### Product Catalog & Shopping
+- Product Catalog with images, prices, and stock levels
+- Advanced Product Filtering
+  - Price ranges (Under $50, $50-$100, $100-$200, Over $200)
+  - Availability (All, In Stock, Out of Stock)
+- Product Sorting (Name A-Z/Z-A, Price Low-High/High-Low, Stock High-Low)
+- Add to Cart with quantity selection and stock validation
+- Shopping Cart Management
+  - View cart with item details and pricing
+  - Update item quantities
+  - Remove individual items
+  - Clear entire cart
+  - Cart count badge in header
+  - Database persistence (survives session timeout)
+
+### Additional Features
 - Contact Form submission
 - Responsive design (mobile, tablet, desktop)
+- Home Page with featured products (6 items)
 
 **Planned** 🔜
-- Shopping Cart, Checkout, Payment Gateway
-- User Profile & Order History
+- Checkout Process
+- Payment Gateway Integration
+- Order Placement & Tracking
 - Admin Dashboard
 
 ---
@@ -108,18 +139,61 @@ cd "C:\Program Files\Apache Software Foundation\Tomcat 9.0\bin"
 ## 📁 Project Structure
 
 ```
-Ecom/
+Kharid-daari/
 ├── src/main/
 │   ├── java/com/ecommerce/
 │   │   ├── config/           # Spring configuration
-│   │   ├── controller/       # HTTP handlers (Home, Auth, Contact)
+│   │   │   ├── AppConfig.java
+│   │   │   └── WebAppInitializer.java
+│   │   ├── controller/       # HTTP handlers
+│   │   │   ├── HomeController.java
+│   │   │   ├── AuthController.java
+│   │   │   ├── ContactController.java
+│   │   │   ├── CartController.java
+│   │   │   └── ProfileController.java
 │   │   ├── service/          # Business logic
+│   │   │   ├── UserService.java
+│   │   │   ├── ProductService.java
+│   │   │   ├── ContactService.java
+│   │   │   ├── CartService.java
+│   │   │   ├── AddressService.java
+│   │   │   └── OrderService.java
 │   │   ├── repository/       # Data access (CRUD)
-│   │   └── model/            # Entities (User, Product, ContactMessage)
+│   │   │   ├── UserRepository.java
+│   │   │   ├── ProductRepository.java
+│   │   │   ├── ContactMessageRepository.java
+│   │   │   ├── CartRepository.java
+│   │   │   ├── CartItemRepository.java
+│   │   │   ├── AddressRepository.java
+│   │   │   └── OrderRepository.java
+│   │   └── model/            # Entities
+│   │       ├── User.java
+│   │       ├── Product.java
+│   │       ├── ContactMessage.java
+│   │       ├── Cart.java
+│   │       ├── CartItem.java
+│   │       ├── Address.java
+│   │       ├── Order.java
+│   │       └── OrderItem.java
 │   ├── resources/            # SQL scripts
+│   │   └── database.sql
 │   └── webapp/WEB-INF/
 │       ├── views/            # JSP templates
+│       │   ├── home.jsp
+│       │   ├── products.jsp
+│       │   ├── login.jsp
+│       │   ├── register.jsp
+│       │   ├── cart.jsp
+│       │   ├── profile.jsp
+│       │   ├── addresses.jsp
+│       │   ├── orders.jsp
+│       │   ├── contact.jsp
+│       │   ├── about.jsp
+│       │   └── includes/
+│       │       ├── header.jsp
+│       │       └── footer.jsp
 │       └── css/              # Stylesheets
+│           └── style.css
 ├── target/
 │   └── ecommerce.war         # Deployable WAR
 ├── pom.xml                   # Maven config
@@ -139,8 +213,10 @@ Ecom/
 | addresses | Shipping addresses | ✅ |
 | products | Product catalog | ✅ |
 | contact_messages | Customer inquiries | ✅ |
-| carts, cart_items | Shopping cart | 🔜 |
-| orders, order_items | Order records | 🔜 |
+| carts | Shopping cart | ✅ |
+| cart_items | Cart line items | ✅ |
+| orders | Order records | ✅ |
+| order_items | Order line items | ✅ |
 | payments | Payment transactions | 🔜 |
 
 **Relationships:**
@@ -148,6 +224,8 @@ Ecom/
 USERS (1) ──→ (*) ADDRESSES
 USERS (1) ──→ (1) CARTS ──→ (*) CART_ITEMS ←── (*) PRODUCTS
 USERS (1) ──→ (*) ORDERS ──→ (*) ORDER_ITEMS ←── (*) PRODUCTS
+ORDERS (1) ──→ (1) PAYMENTS
+```
 ORDERS (1) ──→ (1) PAYMENTS
 ```
 
@@ -166,7 +244,14 @@ ORDERS (1) ──→ (1) PAYMENTS
 | Page | URL | Description |
 |------|-----|-------------|
 | Home | `/` | Landing page with featured products |
-| Products | `/products` | Complete catalog |
+| Products | `/products` | Complete catalog with filtering & sorting |
+| Cart | `/cart` | Shopping cart management |
+| Profile | `/profile` | User profile with tabs |
+| Profile Details | `/profile#details` | View account information |
+| Edit Profile | `/profile#edit` | Update name, email, phone |
+| Change Password | `/profile#password` | Change account password |
+| Addresses | `/profile/addresses` | Manage shipping addresses |
+| Order History | `/profile/orders` | View past orders |
 | Login | `/login` | User authentication |
 | Register | `/register` | New user signup |
 | Contact | `/contact` | Contact form |
@@ -203,27 +288,88 @@ Browser → Controllers → Services → Repositories → MySQL
 
 ## 🧪 Testing
 
-### Scenario 1: Registration
+### Scenario 1: User Registration
 1. Go to `/register`
-2. Fill: Name, Email (john@example.com), Phone, Password
+2. Fill form:
+   - First Name: John (must start with capital, 2-50 chars)
+   - Last Name: Doe (must start with capital, 2-50 chars)
+   - Email: john@example.com (valid email format)
+   - Phone: 1234567890 (exactly 10 digits)
+   - Password: Test@123 (8+ chars, uppercase, lowercase, digit, special char)
+   - Confirm Password: Test@123 (real-time matching indicator)
 3. Submit → Success message on login page
 4. Verify: `SELECT * FROM users WHERE email = 'john@example.com';`
 
-### Scenario 2: Login
+### Scenario 2: User Login
 1. Go to `/login`
-2. Enter: john@example.com / password
-3. Submit → Redirect to home, header shows "Hello, John"
+2. Enter: john@example.com / Test@123
+3. Submit → Redirect to home, header shows "Hello, John Doe"
+4. Verify cart icon appears in header
 
-### Scenario 3: Browse Products
+### Scenario 3: Browse & Filter Products
 1. Click "Products" → View all 6 products
+2. Apply filters:
+   - Price range: $50-$100
+   - Availability: In Stock
+3. Sort by: Price Low to High
+4. Verify filtered results displayed
 
-### Scenario 4: Contact Form
+### Scenario 4: Shopping Cart
+1. On products page, select quantity (e.g., 2)
+2. Click "Add to Cart" → See success notification
+3. Observe cart count badge update in header
+4. Click cart icon → View cart with items
+5. Update quantity → Verify subtotal recalculates
+6. Remove item → Verify cart updates
+7. Verify: `SELECT * FROM carts WHERE user_id = <id>;`
+8. Verify: `SELECT * FROM cart_items WHERE cart_id = <cart_id>;`
+
+### Scenario 5: User Profile Management
+1. Click "My Profile" in header
+2. Test Profile Details tab:
+   - View name, email, phone, member since date
+3. Test Edit Profile tab:
+   - Update first name: Jane
+   - Update last name: Smith
+   - Update email: jane@example.com
+   - Update phone: 9876543210
+   - Submit → Verify success message
+4. Test Change Password tab:
+   - Enter current password
+   - Enter new password: NewTest@456
+   - Confirm new password (watch real-time matching)
+   - Submit → Verify success message
+
+### Scenario 6: Address Management
+1. Go to Addresses tab
+2. Click "+ Add New Address"
+3. Fill modal form:
+   - Address Line 1: 123 Main Street
+   - Address Line 2: Apt 4B (optional)
+   - City: New York
+   - State: NY (optional)
+   - Postal Code: 10001 (optional)
+   - Country: USA
+   - Check "Set as default"
+4. Submit → Verify address card displayed with "Default" badge
+5. Add another address → Click "Set Default"
+6. Edit address → Update details → Verify changes
+7. Delete non-default address → Confirm deletion
+8. Verify: `SELECT * FROM addresses WHERE user_id = <id>;`
+
+### Scenario 7: Order History
+1. Go to Order History tab
+2. View orders (if any exist in database)
+3. Verify order details: ID, date, status, items, pricing
+
+### Scenario 8: Contact Form
 1. Go to `/contact`, submit form
 2. Verify: `SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 1;`
 
-### Scenario 5: Session & Logout
+### Scenario 9: Session & Logout
 1. Login → Navigate pages → Logout
 2. Verify session cleared
+3. Try accessing `/profile` → Redirect to login
 
 ---
 
@@ -351,13 +497,14 @@ Browser → DispatcherServlet → Controller → Service → Repository → MySQ
 5. Retrieve generated ID → Return complete User object
 
 **Key Components:**
-- **Controllers:** 4 (Home, Auth, Contact, Product)
-- **Services:** 3 (User, Product, Contact)
-- **Repositories:** 4 (User, Product, Contact, shared templates)
-- **Models:** 4 (User, Product, ContactMessage, + future entities)
+- **Controllers:** 5 (Home, Auth, Contact, Cart, Profile)
+- **Services:** 6 (User, Product, Contact, Cart, Address, Order)
+- **Repositories:** 8 (User, Product, Contact, Cart, CartItem, Address, Order, OrderItem)
+- **Models:** 8 (User, Product, ContactMessage, Cart, CartItem, Address, Order, OrderItem)
+- **Views:** 13 JSP pages (home, products, cart, profile, addresses, orders, login, register, contact, about, + header/footer includes)
 
 ---
 
 **Version:** 1.0-SNAPSHOT  
-**Last Updated:** January 8, 2026  
+**Last Updated:** January 14, 2026  
 **License:** Educational/Evaluation purposes

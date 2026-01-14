@@ -90,9 +90,9 @@
         </c:if>
 
         <div class="profile-tabs">
-            <button class="profile-tab active" onclick="showTab('details')">Profile Details</button>
-            <button class="profile-tab" onclick="showTab('edit')">Edit Profile</button>
-            <button class="profile-tab" onclick="showTab('password')">Change Password</button>
+            <button class="profile-tab" id="tab-details" onclick="showTab('details')">Profile Details</button>
+            <button class="profile-tab" id="tab-edit" onclick="showTab('edit')">Edit Profile</button>
+            <button class="profile-tab" id="tab-password" onclick="showTab('password')">Change Password</button>
             <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile/addresses'">Addresses</button>
             <button class="profile-tab" onclick="window.location.href='${pageContext.request.contextPath}/profile/orders'">Order History</button>
         </div>
@@ -210,8 +210,28 @@
 
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Update URL hash
+            window.location.hash = tabName;
         }
+
+        // Handle initial page load and hash changes
+        function loadTabFromHash() {
+            let hash = window.location.hash.substring(1); // Remove the '#'
+            if (hash && ['details', 'edit', 'password'].includes(hash)) {
+                showTab(hash);
+            } else {
+                // Default to details tab
+                showTab('details');
+            }
+        }
+
+        // Load correct tab on page load
+        window.addEventListener('DOMContentLoaded', loadTabFromHash);
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('hashchange', loadTabFromHash);
 
         function validateProfileUpdate() {
             const firstName = document.getElementById('firstName').value;
