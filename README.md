@@ -499,7 +499,7 @@ Browser → DispatcherServlet → Controller → Service → Repository → MySQ
 **Key Components:**
 - **Controllers:** 5 (Home, Auth, Contact, Cart, Profile)
 - **Services:** 6 (User, Product, Contact, Cart, Address, Order)
-- **Repositories:** 8 (User, Product, Contact, Cart, CartItem, Address, Order, OrderItem)
+- **Repositories:** 7 (User, Product, Contact, Cart, CartItem, Address, Order)
 - **Models:** 8 (User, Product, ContactMessage, Cart, CartItem, Address, Order, OrderItem)
 - **Views:** 13 JSP pages (home, products, cart, profile, addresses, orders, login, register, contact, about, + header/footer includes)
 
