@@ -1,6 +1,8 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.model.Cart;
 import com.ecommerce.model.User;
+import com.ecommerce.service.CartService;
 import com.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CartService cartService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -35,6 +40,10 @@ public class AuthController {
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("userName", user.getName());
                 session.setAttribute("userEmail", user.getEmail());
+                
+                // Load user's cart from database
+                Cart cart = cartService.getOrCreateCart(user.getId());
+                session.setAttribute("cart", cart);
                 
                 return "redirect:/";
             } else {

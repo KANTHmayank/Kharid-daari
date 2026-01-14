@@ -80,4 +80,20 @@ public class UserRepository {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
         return count != null && count > 0;
     }
+
+    public boolean existsByEmailExcludingUserId(String email, Long userId) {
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ? AND id != ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email, userId);
+        return count != null && count > 0;
+    }
+
+    public void updateProfile(Long userId, String name, String email, String phone) {
+        String sql = "UPDATE users SET name = ?, email = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        jdbcTemplate.update(sql, name, email, phone, userId);
+    }
+
+    public void updatePassword(Long userId, String newPasswordHash) {
+        String sql = "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        jdbcTemplate.update(sql, newPasswordHash, userId);
+    }
 }

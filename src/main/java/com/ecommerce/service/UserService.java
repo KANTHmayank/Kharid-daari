@@ -52,4 +52,39 @@ public class UserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public void updateProfile(Long userId, String name, String email, String phone) {
+        // Validate email format
+        if (email == null || !email.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
+            throw new RuntimeException("Invalid email format");
+        }
+        
+        // Check if email is already used by another user
+        if (userRepository.existsByEmailExcludingUserId(email, userId)) {
+            throw new RuntimeException("Email is already in use by another account");
+        }
+        
+        // Validate phone number format
+        if (phone != null && !phone.matches("^[0-9]{10}$")) {
+            throw new RuntimeException("Phone number must be exactly 10 digits");
+        }
+        userRepository.updateProfile(userId, name, email, phone);
+    }
+
+    public void updatePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId);
+        
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        // Verify current password
+        if (!BCrypt.checkpw(currentPassword, user.getPasswordHash())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Hash new password
+        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        userRepository.updatePassword(userId, hashedPassword);
+    }
 }
