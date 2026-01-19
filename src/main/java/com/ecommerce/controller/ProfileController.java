@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
@@ -62,6 +65,7 @@ public class ProfileController {
     public String updateProfile(@RequestParam String firstName,
                                @RequestParam String lastName,
                                @RequestParam String email,
+                               @RequestParam(required = false) String backupEmail,
                                @RequestParam String phone,
                                HttpSession session,
                                Model model) {
@@ -73,7 +77,7 @@ public class ProfileController {
 
         try {
             String fullName = firstName.trim() + " " + lastName.trim();
-            userService.updateProfile(userId, fullName, email, phone);
+            userService.updateProfile(userId, fullName, email, backupEmail, phone);
             session.setAttribute("userName", fullName);
             model.addAttribute("success", "Profile updated successfully!");
             
@@ -84,6 +88,27 @@ public class ProfileController {
             User user = userService.findById(userId);
             model.addAttribute("user", user);
         }
+
+        return "profile";
+    }
+
+    @PostMapping("/swap-emails")
+    public String swapEmails(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            userService.swapEmails(userId);
+            model.addAttribute("success", "Emails swapped successfully!");
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+
+        User user = userService.findById(userId);
+        model.addAttribute("user", user);
 
         return "profile";
     }
@@ -243,4 +268,19 @@ public class ProfileController {
         model.addAttribute("addresses", addresses);
 
         return "addresses";
-    }}
+    }
+
+    @PostMapping("/validate-password")
+    @ResponseBody
+    public ResponseEntity<String> validatePassword(@RequestParam String currentPassword, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        boolean valid = false;
+        if (userId != null) {
+            valid = userService.verifyPassword(userId, currentPassword);
+        }
+        String jsonResponse = "{\"valid\": " + valid + "}";
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(jsonResponse);
+    }
+}

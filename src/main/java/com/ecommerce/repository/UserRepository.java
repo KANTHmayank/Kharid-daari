@@ -26,6 +26,7 @@ public class UserRepository {
             user.setId(rs.getLong("id"));
             user.setName(rs.getString("name"));
             user.setEmail(rs.getString("email"));
+            user.setBackupEmail(rs.getString("backup_email"));
             user.setPasswordHash(rs.getString("password_hash"));
             user.setPhone(rs.getString("phone"));
             user.setCreatedAt(rs.getTimestamp("created_at"));
@@ -36,8 +37,8 @@ public class UserRepository {
     
     public User save(User user) {
         // Explicitly include timestamps in INSERT to ensure they are always set
-        String sql = "INSERT INTO users (name, email, password_hash, phone, created_at, updated_at) " +
-                     "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+        String sql = "INSERT INTO users (name, email, backup_email, password_hash, phone, created_at, updated_at) " +
+                     "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
@@ -45,8 +46,9 @@ public class UserRepository {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPasswordHash());
-            ps.setString(4, user.getPhone());
+            ps.setString(3, user.getBackupEmail());
+            ps.setString(4, user.getPasswordHash());
+            ps.setString(5, user.getPhone());
             // created_at and updated_at are set directly in SQL using CURRENT_TIMESTAMP
             return ps;
         }, keyHolder);
@@ -61,6 +63,15 @@ public class UserRepository {
         String sql = "SELECT * FROM users WHERE email = ?";
         try {
             return jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, email);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public User findByEmailOrBackupEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ? OR backup_email = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, USER_ROW_MAPPER, email, email);
         } catch (Exception e) {
             return null;
         }
@@ -87,9 +98,9 @@ public class UserRepository {
         return count != null && count > 0;
     }
 
-    public void updateProfile(Long userId, String name, String email, String phone) {
-        String sql = "UPDATE users SET name = ?, email = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        jdbcTemplate.update(sql, name, email, phone, userId);
+    public void updateProfile(Long userId, String name, String email, String backupEmail, String phone) {
+        String sql = "UPDATE users SET name = ?, email = ?, backup_email = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        jdbcTemplate.update(sql, name, email, backupEmail, phone, userId);
     }
 
     public void updatePassword(Long userId, String newPasswordHash) {

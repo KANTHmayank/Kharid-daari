@@ -6,6 +6,7 @@ public class User {
     private Long id;
     private String name;
     private String email;
+    private String backupEmail;
     private String passwordHash;
     private String phone;
     private Date createdAt;
@@ -45,6 +46,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getBackupEmail() {
+        return backupEmail;
+    }
+
+    public void setBackupEmail(String backupEmail) {
+        this.backupEmail = backupEmail;
     }
 
     public String getPasswordHash() {

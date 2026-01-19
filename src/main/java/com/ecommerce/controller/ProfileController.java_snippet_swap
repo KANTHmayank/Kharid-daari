@@ -1,0 +1,21 @@
+
+    @PostMapping("/swap-emails")
+    public String swapEmails(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            userService.swapEmails(userId);
+            model.addAttribute("success", "Emails swapped successfully!");
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+
+        User user = userService.findById(userId);
+        model.addAttribute("user", user);
+
+        return "profile";
+    }

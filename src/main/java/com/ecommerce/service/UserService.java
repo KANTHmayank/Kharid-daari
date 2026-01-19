@@ -31,7 +31,7 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmailOrBackupEmail(email);
         
         if (user == null) {
             return null; // User not found
@@ -53,10 +53,22 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public void updateProfile(Long userId, String name, String email, String phone) {
+    public void updateProfile(Long userId, String name, String email, String backupEmail, String phone) {
         // Validate email format
         if (email == null || !email.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
             throw new RuntimeException("Invalid email format");
+        }
+        
+        // Validate backup email format if provided
+        if (backupEmail != null && !backupEmail.isEmpty()) {
+            if (!backupEmail.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
+                throw new RuntimeException("Invalid backup email format");
+            }
+            if (backupEmail.equals(email)) {
+                throw new RuntimeException("Backup email cannot be the same as primary email");
+            }
+        } else {
+             backupEmail = null; // Ensure empty string becomes null
         }
         
         // Check if email is already used by another user
@@ -64,27 +76,54 @@ public class UserService {
             throw new RuntimeException("Email is already in use by another account");
         }
         
+        // Check if backup email is already used by another user (optional, but good practice)
+        if (backupEmail != null && userRepository.existsByEmailExcludingUserId(backupEmail, userId)) {
+            throw new RuntimeException("Backup email is already in use by another account");
+        }
+        
         // Validate phone number format
         if (phone != null && !phone.matches("^[0-9]{10}$")) {
             throw new RuntimeException("Phone number must be exactly 10 digits");
         }
-        userRepository.updateProfile(userId, name, email, phone);
+        userRepository.updateProfile(userId, name, email, backupEmail, phone);
+    }
+
+    public boolean verifyPassword(Long userId, String password) {
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            return false;
+        }
+        return BCrypt.checkpw(password, user.getPasswordHash());
     }
 
     public void updatePassword(Long userId, String currentPassword, String newPassword) {
-        User user = userRepository.findById(userId);
-        
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-
-        // Verify current password
-        if (!BCrypt.checkpw(currentPassword, user.getPasswordHash())) {
+        if (!verifyPassword(userId, currentPassword)) {
             throw new RuntimeException("Current password is incorrect");
         }
 
         // Hash new password
         String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
         userRepository.updatePassword(userId, hashedPassword);
+    }
+
+    public void swapEmails(Long userId) {
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        
+        String backup = user.getBackupEmail();
+        if (backup == null || backup.isEmpty()) {
+            throw new RuntimeException("No backup email to swap with");
+        }
+        
+        String primary = user.getEmail();
+        
+        // Check if new primary (old backup) is in use by someone else
+        if (userRepository.existsByEmailExcludingUserId(backup, userId)) {
+            throw new RuntimeException("Backup email is already associated with another account");
+        }
+        
+        updateProfile(userId, user.getName(), backup, primary, user.getPhone());
     }
 }

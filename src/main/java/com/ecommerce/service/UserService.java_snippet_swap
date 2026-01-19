@@ -1,0 +1,25 @@
+
+    public void swapEmails(Long userId) {
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        
+        String backup = user.getBackupEmail();
+        if (backup == null || backup.isEmpty()) {
+            throw new RuntimeException("No backup email to swap with");
+        }
+        
+        String primary = user.getEmail();
+        
+        // Check if new primary (old backup) is in use by someone else
+        if (userRepository.existsByEmailExcludingUserId(backup, userId)) {
+            throw new RuntimeException("Backup email is already associated with another account");
+        }
+        
+        // Determine if old primary is in use by someone else (as backup)? 
+        // For simplicity, we just swap them in the updateProfile call or direct repo update.
+        // We'll use updateProfile to ensure all validations pass again.
+        
+        updateProfile(userId, user.getName(), backup, primary, user.getPhone());
+    }
