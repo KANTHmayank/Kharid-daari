@@ -107,4 +107,9 @@ public class UserRepository {
         String sql = "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         jdbcTemplate.update(sql, newPasswordHash, userId);
     }
+
+    public void updateTimestamp(Long userId) {
+        String sql = "UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        jdbcTemplate.update(sql, userId);
+    }
 }

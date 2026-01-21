@@ -96,6 +96,10 @@ public class Address {
         return isDefault;
     }
 
+    public boolean getIsDefault() {
+        return isDefault;
+    }
+
     public void setDefault(boolean isDefault) {
         this.isDefault = isDefault;
     }

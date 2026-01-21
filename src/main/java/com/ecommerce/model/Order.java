@@ -8,6 +8,7 @@ public class Order {
     private Long id;
     private Long userId;
     private Long shippingAddressId;
+    private Long billingAddressId;
     private BigDecimal subtotal;
     private BigDecimal tax;
     private BigDecimal shippingFee;
@@ -43,6 +44,14 @@ public class Order {
 
     public void setShippingAddressId(Long shippingAddressId) {
         this.shippingAddressId = shippingAddressId;
+    }
+
+    public Long getBillingAddressId() {
+        return billingAddressId;
+    }
+
+    public void setBillingAddressId(Long billingAddressId) {
+        this.billingAddressId = billingAddressId;
     }
 
     public BigDecimal getSubtotal() {

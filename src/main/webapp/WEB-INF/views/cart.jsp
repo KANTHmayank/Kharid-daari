@@ -113,9 +113,47 @@
                         padding: 4rem 2rem;
                     }
 
-                    .empty-cart h2 {
-                        color: #667eea;
-                        margin-bottom: 1rem;
+                    .modal {
+                        display: none;
+                        position: fixed;
+                        z-index: 1000;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        overflow: auto;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .modal-content {
+                        background-color: #fefefe;
+                        padding: 2rem;
+                        border-radius: 10px;
+                        width: 90%;
+                        max-width: 400px;
+                        text-align: center;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                        animation: slideDown 0.3s ease-out;
+                    }
+
+                    @keyframes slideDown {
+                        from { transform: translateY(-50px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+
+                    .modal-buttons {
+                        margin-top: 2rem;
+                        display: flex;
+                        justify-content: center;
+                        gap: 1rem;
+                    }
+
+                    .btn-danger {
+                        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+                        color: white;
+                        border: none;
                     }
                 </style>
             </head>
@@ -177,7 +215,7 @@
                                 <div style="margin-top: 2rem; text-align: right;">
                                     <form action="${pageContext.request.contextPath}/cart/clear" method="post"
                                         style="display: inline;"
-                                        onsubmit="return confirm('Are you sure you want to clear the cart?')">
+                                        onsubmit="return confirmClear(event)">
                                         <button type="submit" class="btn btn-outline">Clear Cart</button>
                                     </form>
                                 </div>
@@ -209,6 +247,18 @@
                     </c:choose>
                 </div>
 
+                <!-- Custom Confirmation Modal -->
+                <div id="clearCartModal" class="modal">
+                    <div class="modal-content">
+                        <h3 style="color: #333; margin-bottom: 1rem;">Clear Shopping Cart?</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Are you sure you want to remove all items from your cart? This action cannot be undone.</p>
+                        <div class="modal-buttons">
+                            <button id="confirmClearBtn" type="button" class="btn btn-primary btn-danger">Yes, Clear Cart</button>
+                            <button onclick="closeModal()" type="button" class="btn btn-outline" style="border: 1px solid #ddd;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
                 <script>
                     function validateQuantity(form) {
                         const quantity = parseInt(form.querySelector('input[name="quantity"]').value);
@@ -217,6 +267,37 @@
                             return false;
                         }
                         return true;
+                    }
+
+                    let clearFormToSubmit = null;
+
+                    function confirmClear(event) {
+                        event.preventDefault(); // Stop default form submission
+                        clearFormToSubmit = event.target; // Store the form reference
+                        const modal = document.getElementById('clearCartModal');
+                        modal.style.display = "flex";
+                        return false;
+                    }
+
+                    function closeModal() {
+                        const modal = document.getElementById('clearCartModal');
+                        modal.style.display = "none";
+                        clearFormToSubmit = null;
+                    }
+
+                    // Handle Confirm Click
+                    document.getElementById('confirmClearBtn').onclick = function() {
+                        if (clearFormToSubmit) {
+                            clearFormToSubmit.submit();
+                        }
+                    };
+
+                    // Close if clicked outside
+                    window.onclick = function(event) {
+                        const modal = document.getElementById('clearCartModal');
+                        if (event.target == modal) {
+                            closeModal();
+                        }
                     }
                 </script>
 

@@ -78,4 +78,13 @@ public class CartItemRepository {
         String sql = "DELETE FROM cart_items WHERE cart_id = ?";
         jdbcTemplate.update(sql, cartId);
     }
+
+    public Integer getItemQuantity(Long cartId, Long productId) {
+        String sql = "SELECT quantity FROM cart_items WHERE cart_id = ? AND product_id = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, Integer.class, cartId, productId);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }

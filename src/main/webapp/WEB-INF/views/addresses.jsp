@@ -174,8 +174,8 @@
 
         <div class="address-list">
             <c:forEach var="address" items="${addresses}">
-                <div class="address-card ${address['default'] ? 'default' : ''}">
-                    <c:if test="${address['default']}">
+                <div class="address-card ${address.isDefault ? 'default' : ''}">
+                    <c:if test="${address.isDefault}">
                         <span class="default-badge">Default</span>
                     </c:if>
                     
@@ -192,8 +192,8 @@
                     </div>
 
                     <div class="address-actions">
-                        <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="editAddress(${address.id}, '${address.line1}', '${address.line2}', '${address.city}', '${address.state}', '${address.postalCode}', '${address.country}', ${address['default']})">Edit</button>
-                        <c:if test="${!address['default']}">
+                        <button class="btn btn-outline" style="padding: 0.5rem 1rem;" onclick="editAddress(${address.id}, '${address.line1}', '${address.line2}', '${address.city}', '${address.state}', '${address.postalCode}', '${address.country}', ${address.isDefault})">Edit</button>
+                        <c:if test="${!address.isDefault}">
                             <form action="${pageContext.request.contextPath}/profile/address/set-default" method="post" style="display: inline;">
                                 <input type="hidden" name="id" value="${address.id}">
                                 <button type="submit" class="btn btn-outline" style="padding: 0.5rem 1rem;">Set Default</button>

@@ -146,7 +146,7 @@
                         <div class="products-grid" id="productsGrid">
                             <c:forEach var="product" items="${products}">
                                 <div class="product-card" data-price="${product.price}" data-stock="${product.stock}"
-                                    data-name="${product.name}">
+                                    data-name="${product.name}" data-product-id="${product.id}">
                                     <img src="${product.imageUrl}" alt="${product.name}">
                                     <div class="product-info">
                                         <h3>${product.name}</h3>
@@ -156,9 +156,10 @@
                                                 <fmt:formatNumber value="${product.price}" type="number"
                                                     minFractionDigits="2" maxFractionDigits="2" />
                                             </span>
+                                            <c:set var="availableStock" value="${product.stock - (cartQuantities[product.id] != null ? cartQuantities[product.id] : 0)}" />
                                             <c:choose>
-                                                <c:when test="${product.stock > 0}">
-                                                    <span class="stock in-stock">In Stock (${product.stock})</span>
+                                                <c:when test="${availableStock > 0}">
+                                                    <span class="stock in-stock">In Stock (${availableStock})</span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="stock out-of-stock">Out of Stock</span>
@@ -172,18 +173,18 @@
                                                 null ? cartQuantities[product.id] : 0}</span>
                                         </div>
 
-                                        <c:if test="${product.stock > 0}">
+                                        <c:if test="${availableStock > 0}">
                                             <div class="quantity-selector">
                                                 <label for="qty-${product.id}">Quantity:</label>
                                                 <input type="number" id="qty-${product.id}" value="1" min="1"
-                                                    max="${product.stock}">
+                                                    max="${availableStock}">
                                             </div>
                                             <button class="btn-add-to-cart"
-                                                onclick="addToCart(${product.id}, ${product.stock})">
+                                                onclick="addToCart(${product.id}, ${availableStock})">
                                                 Add to Cart
                                             </button>
                                         </c:if>
-                                        <c:if test="${product.stock <= 0}">
+                                        <c:if test="${availableStock <= 0}">
                                             <button class="btn-add-to-cart" disabled>
                                                 Out of Stock
                                             </button>
@@ -276,12 +277,59 @@
                                     showNotification('Product added to cart!', 'success');
                                     updateCartCount(data.itemCount);
 
-                                    // Update quantity on card
+                                    // Update "In Cart" quantity on card
                                     const qtyDisplay = document.getElementById('cart-qty-' + productId);
                                     if (qtyDisplay) {
                                         const currentText = qtyDisplay.textContent;
                                         const currentQty = parseInt(currentText.split(':')[1].trim());
-                                        qtyDisplay.textContent = 'In Cart: ' + (currentQty + quantity);
+                                        const newCartQty = currentQty + quantity;
+                                        qtyDisplay.textContent = 'In Cart: ' + newCartQty;
+                                    }
+
+                                    // Update "IN STOCK" display - subtract from available stock
+                                    const productCard = document.querySelector('[data-product-id="' + productId + '"]');
+                                    
+                                    if (productCard) {
+                                        const stockBadge = productCard.querySelector('.stock');
+                                        
+                                        if (stockBadge) {
+                                            const stockText = stockBadge.textContent;
+                                            const match = stockText.match(/\d+/);
+                                            const currentStock = match ? parseInt(match[0]) : 0;
+                                            const newStock = currentStock - quantity;
+                                            
+                                            if (newStock > 0) {
+                                                stockBadge.textContent = 'In Stock (' + newStock + ')';
+                                                stockBadge.className = 'stock in-stock';
+                                            } else {
+                                                stockBadge.textContent = 'Out of Stock';
+                                                stockBadge.className = 'stock out-of-stock';
+                                                
+                                                // Disable the Add to Cart button
+                                                const addButton = productCard.querySelector('.btn-add-to-cart');
+                                                if (addButton) {
+                                                    addButton.disabled = true;
+                                                    addButton.textContent = 'Out of Stock';
+                                                }
+                                                
+                                                // Hide quantity selector
+                                                const quantitySelector = productCard.querySelector('.quantity-selector');
+                                                if (quantitySelector) {
+                                                    quantitySelector.style.display = 'none';
+                                                }
+                                            }
+                                            
+                                            // Update max attribute of quantity input
+                                            if (newStock > 0) {
+                                                quantityInput.setAttribute('max', newStock);
+                                                
+                                                // Update the onclick attribute of the button
+                                                const addButton = productCard.querySelector('.btn-add-to-cart');
+                                                if (addButton) {
+                                                    addButton.setAttribute('onclick', 'addToCart(' + productId + ', ' + newStock + ')');
+                                                }
+                                            }
+                                        }
                                     }
 
                                     // Reset input to 1

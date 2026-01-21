@@ -69,6 +69,7 @@ CREATE TABLE orders (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     shipping_address_id BIGINT NOT NULL,
+    billing_address_id BIGINT,
     subtotal DECIMAL(10, 2) NOT NULL,
     tax DECIMAL(10, 2) DEFAULT 0.00,
     shipping_fee DECIMAL(10, 2) DEFAULT 0.00,
@@ -76,7 +77,8 @@ CREATE TABLE orders (
     status VARCHAR(50) DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (shipping_address_id) REFERENCES addresses(id)
+    FOREIGN KEY (shipping_address_id) REFERENCES addresses(id),
+    FOREIGN KEY (billing_address_id) REFERENCES addresses(id)
 );
 
 -- Order Items Table
@@ -114,9 +116,9 @@ CREATE TABLE contact_messages (
 
 -- Insert Sample Products
 INSERT INTO products (sku, name, description, price, stock, image_url) VALUES
-('PROD-001', 'Wireless Headphones', 'Premium noise-cancelling wireless headphones', 129.99, 50, 'https://via.placeholder.com/300x200?text=Headphones'),
-('PROD-002', 'Smart Watch', 'Fitness tracking smartwatch with heart rate monitor', 199.99, 30, 'https://via.placeholder.com/300x200?text=Smart+Watch'),
-('PROD-003', 'Laptop Backpack', 'Water-resistant laptop backpack with USB charging port', 49.99, 100, 'https://via.placeholder.com/300x200?text=Backpack'),
-('PROD-004', 'Bluetooth Speaker', 'Portable Bluetooth speaker with 12-hour battery life', 79.99, 75, 'https://via.placeholder.com/300x200?text=Speaker'),
-('PROD-005', 'Mechanical Keyboard', 'RGB mechanical gaming keyboard with tactile switches', 89.99, 120, 'https://via.placeholder.com/300x200?text=Keyboard'),
-('PROD-006', 'Wireless Mouse', 'Ergonomic wireless mouse with adjustable DPI', 29.99, 200, 'https://via.placeholder.com/300x200?text=Mouse');
+('PROD-001', 'Wireless Headphones', 'Premium noise-cancelling wireless headphones', 4999.00, 50, 'https://via.placeholder.com/300x200?text=Headphones'),
+('PROD-002', 'Smart Watch', 'Fitness tracking smartwatch with heart rate monitor', 5999.00, 30, 'https://via.placeholder.com/300x200?text=Smart+Watch'),
+('PROD-003', 'Laptop Backpack', 'Water-resistant laptop backpack with USB charging port', 1499.00, 100, 'https://via.placeholder.com/300x200?text=Backpack'),
+('PROD-004', 'Bluetooth Speaker', 'Portable Bluetooth speaker with 12-hour battery life', 2999.00, 75, 'https://via.placeholder.com/300x200?text=Speaker'),
+('PROD-005', 'Mechanical Keyboard', 'RGB mechanical gaming keyboard with tactile switches', 4499.00, 120, 'https://via.placeholder.com/300x200?text=Keyboard'),
+('PROD-006', 'Wireless Mouse', 'Ergonomic wireless mouse with adjustable DPI', 999.00, 200, 'https://via.placeholder.com/300x200?text=Mouse');

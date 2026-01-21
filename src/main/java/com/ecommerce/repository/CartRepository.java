@@ -39,7 +39,7 @@ public class CartRepository {
     }
 
     public Long createCart(Long userId) {
-        String sql = "INSERT INTO carts (user_id, total) VALUES (?, 0.00)";
+        String sql = "INSERT INTO carts (user_id, total, updated_at) VALUES (?, 0.00, CURRENT_TIMESTAMP)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
         jdbcTemplate.update(connection -> {
@@ -52,7 +52,7 @@ public class CartRepository {
     }
 
     public void updateCartTotal(Long cartId, BigDecimal total) {
-        String sql = "UPDATE carts SET total = ? WHERE id = ?";
+        String sql = "UPDATE carts SET total = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         jdbcTemplate.update(sql, total, cartId);
     }
 

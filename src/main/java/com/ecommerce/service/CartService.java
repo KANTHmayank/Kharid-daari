@@ -45,8 +45,18 @@ public class CartService {
         }
 
         Product product = productService.getProductById(productId);
-        if (product == null || product.getStock() < quantity) {
-            throw new RuntimeException("Product not available or insufficient stock");
+        if (product == null) {
+            throw new RuntimeException("Product not found");
+        }
+
+        // Check existing quantity in cart
+        Integer existingQuantity = cartItemRepository.getItemQuantity(cartId, productId);
+        Integer totalQuantity = existingQuantity + quantity;
+
+        // Validate against stock
+        if (totalQuantity > product.getStock()) {
+            throw new RuntimeException("Cannot add to cart. Only " + product.getStock() + " items available" + 
+                (existingQuantity > 0 ? " (you already have " + existingQuantity + " in cart)" : ""));
         }
 
         BigDecimal unitPrice = product.getPrice();
@@ -60,6 +70,12 @@ public class CartService {
         Long cartId = cartRepository.findCartIdByUserId(userId);
         
         if (cartId != null) {
+            // Validate against stock when updating quantity
+            Product product = productService.getProductById(productId);
+            if (product != null && quantity > product.getStock()) {
+                throw new RuntimeException("Cannot update quantity. Only " + product.getStock() + " items available");
+            }
+            
             cartItemRepository.updateQuantity(cartId, productId, quantity);
             updateCartTotal(cartId);
         }

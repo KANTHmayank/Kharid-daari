@@ -2,6 +2,7 @@ package com.ecommerce.service;
 
 import com.ecommerce.model.Address;
 import com.ecommerce.repository.AddressRepository;
+import com.ecommerce.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ public class AddressService {
 
     @Autowired
     private AddressRepository addressRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<Address> getUserAddresses(Long userId) {
         return addressRepository.findByUserId(userId);
@@ -42,7 +46,9 @@ public class AddressService {
             addressRepository.clearDefaultForUser(address.getUserId());
         }
 
-        return addressRepository.create(address);
+        Long addressId = addressRepository.create(address);
+        userRepository.updateTimestamp(address.getUserId());
+        return addressId;
     }
 
     public void updateAddress(Address address) {
@@ -61,6 +67,7 @@ public class AddressService {
         }
 
         addressRepository.update(address);
+        userRepository.updateTimestamp(address.getUserId());
     }
 
     public void deleteAddress(Long addressId, Long userId) {
@@ -73,6 +80,7 @@ public class AddressService {
         }
 
         addressRepository.delete(addressId);
+        userRepository.updateTimestamp(userId);
     }
 
     public void setDefaultAddress(Long addressId, Long userId) {
@@ -85,5 +93,6 @@ public class AddressService {
         }
 
         addressRepository.setAsDefault(addressId, userId);
+        userRepository.updateTimestamp(userId);
     }
 }
