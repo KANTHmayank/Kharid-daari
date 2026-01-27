@@ -6,11 +6,12 @@ public class User {
     private Long id;
     private String name;
     private String email;
-    private String backupEmail;
+    private String recoveryEmail;
     private String passwordHash;
     private String phone;
     private Date createdAt;
     private Date updatedAt;
+    private Date dob;
 
     // Constructors
     public User() {
@@ -48,12 +49,12 @@ public class User {
         this.email = email;
     }
 
-    public String getBackupEmail() {
-        return backupEmail;
+    public String getRecoveryEmail() {
+        return recoveryEmail;
     }
 
-    public void setBackupEmail(String backupEmail) {
-        this.backupEmail = backupEmail;
+    public void setRecoveryEmail(String recoveryEmail) {
+        this.recoveryEmail = recoveryEmail;
     }
 
     public String getPasswordHash() {
@@ -86,5 +87,13 @@ public class User {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Date getDob() {
+        return dob;
+    }
+
+    public void setDob(Date dob) {
+        this.dob = dob;
     }
 }

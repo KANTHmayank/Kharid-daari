@@ -17,7 +17,10 @@
         .billing-form { margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        .form-group input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; }
+        .form-group input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; transition: border-color 0.3s; }
+        .form-group input.valid { border-color: #28a745; }
+        .form-group input.invalid { border-color: #dc3545; }
+        .form-group small.error-msg { color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem; display: block; }
         .order-summary { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
         .total-row { font-weight: bold; font-size: 1.2rem; margin-top: 1rem; border-top: 2px solid #ddd; padding-top: 1rem; }
@@ -32,6 +35,8 @@
         .checkbox-wrapper { display: flex; align-items: center; margin-bottom: 1rem; }
         .checkbox-wrapper input { width: auto; margin-right: 0.5rem; }
         .checkbox-wrapper label { margin-bottom: 0; }
+        .optional-section { background: #f0f8ff; padding: 1rem; border-radius: 5px; margin-top: 1rem; border-left: 3px solid #667eea; }
+        .optional-label { color: #666; font-size: 0.9rem; font-style: italic; }
     </style>
 </head>
 <body>
@@ -41,7 +46,7 @@
         <div class="steps">
             <a href="${pageContext.request.contextPath}/checkout/shipping" class="step">1. Shipping</a>
             <span class="step active">2. Billing</span>
-            <span class="step disabled">3. Review</span>
+            <span class="step disabled">3. Payment</span>
         </div>
 
         <div class="order-summary">
@@ -86,49 +91,51 @@
                     </div>
                 </div>
 
-                <h3>Payment Details</h3>
-                <div class="form-group">
-                    <label>Card Number</label>
-                    <input type="text" id="cardNumber" name="cardNumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" required value="${billingInfo.cardNumber}">
-                    <small id="cardError" style="color: red; display: none; margin-top: 5px;">Card number must be 16 digits</small>
-                </div>
-                <div class="form-group">
-                    <label>Name on Card</label>
-                    <input type="text" id="cardName" name="cardName" placeholder="John Doe" required value="${billingInfo.cardName}">
-                </div>
-                <div class="form-group" style="display: flex; gap: 1rem;">
-                    <div style="flex: 1;">
-                        <label>Expiry Date</label>
-                        <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required value="${billingInfo.expiryDate}">
+                <h3>Billing Information (Optional)</h3>
+                <div class="optional-section">
+                    <div class="form-group">
+                        <label>GST Number <span class="optional-label">(Optional - for B2B)</span></label>
+                        <input type="text" id="gstNumber" name="gstNumber" placeholder="e.g., 22AAAAA0000A1Z5" 
+                               maxlength="15" value="${billingInfo.gstNumber}">
+                        <small id="gstError" class="error-msg" style="display: none;">Invalid GST format (15 alphanumeric characters)</small>
                     </div>
-                    <div style="flex: 1;">
-                        <label>CVV</label>
-                        <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required value="${billingInfo.cvv}">
+                    
+                    <div class="form-group">
+                        <label>Company Name <span class="optional-label">(Optional)</span></label>
+                        <input type="text" id="companyName" name="companyName" placeholder="Company or Business Name" 
+                               maxlength="100" value="${billingInfo.companyName}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email for Invoice <span class="optional-label">(Optional - if different from account email)</span></label>
+                        <input type="email" id="invoiceEmail" name="invoiceEmail" placeholder="invoice@company.com" 
+                               maxlength="100" value="${billingInfo.invoiceEmail}">
+                        <small id="emailError" class="error-msg" style="display: none;">Please enter a valid email address</small>
                     </div>
                 </div>
+                
                 <div style="display: flex; gap: 1rem;">
                     <button type="submit" name="navigation" value="back" class="btn-back" formnovalidate>Back</button>
-                    <button type="submit" name="navigation" value="next" class="btn-proceed">Continue to Review</button>
+                    <button type="submit" name="navigation" value="next" class="btn-proceed">Continue to Payment</button>
                 </div>
             </form>
         </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const cardNumber = document.getElementById('cardNumber');
-            const expiryDate = document.getElementById('expiryDate');
-            const cvv = document.getElementById('cvv');
             const form = document.getElementById('billingForm');
-            const cardError = document.getElementById('cardError');
             const sameAsShipping = document.getElementById('sameAsShipping');
             const billingAddressesList = document.getElementById('billingAddressesList');
+            const gstNumber = document.getElementById('gstNumber');
+            const gstError = document.getElementById('gstError');
+            const invoiceEmail = document.getElementById('invoiceEmail');
+            const emailError = document.getElementById('emailError');
 
             // Toggle Billing Address
             if (sameAsShipping) {
                 sameAsShipping.addEventListener('change', function() {
                     billingAddressesList.style.display = this.checked ? 'none' : 'block';
                     
-                    // Toggle required attribute for radio buttons
                     const radioButtons = billingAddressesList.querySelectorAll('input[type="radio"]');
                     radioButtons.forEach(radio => {
                         if (this.checked) {
@@ -140,51 +147,70 @@
                 });
             }
 
-            // Card Number Formatting
-            cardNumber.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 16) value = value.slice(0, 16);
+            // GST Number Validation (15 alphanumeric characters)
+            // Format: 2 digits (State) + 10 chars (PAN) + 1 char (Entity: 1-9/A-Z) + Z + 1 char (Checksum)
+            gstNumber.addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 15);
                 
-                let formattedValue = '';
-                for (let i = 0; i < value.length; i++) {
-                    if (i > 0 && i % 4 === 0) formattedValue += ' ';
-                    formattedValue += value[i];
-                }
-                e.target.value = formattedValue;
-            });
-
-            // Expiry Date Formatting
-            expiryDate.addEventListener('input', function(e) {
-                let input = e.target.value;
-                let clean = input.replace(/\D/g, '');
-                if (clean.length > 4) clean = clean.slice(0, 4);
-
-                if (clean.length > 2) {
-                    e.target.value = clean.slice(0, 2) + '/' + clean.slice(2);
-                } else if (clean.length === 2 && e.inputType !== 'deleteContentBackward' && input.indexOf('/') === -1) {
-                    e.target.value = clean + '/';
+                const value = e.target.value;
+                if (value.length === 0) {
+                    e.target.classList.remove('valid', 'invalid');
+                    gstError.style.display = 'none';
+                } else if (value.length === 15 && /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+                    e.target.classList.remove('invalid');
+                    e.target.classList.add('valid');
+                    gstError.style.display = 'none';
+                } else if (value.length === 15) {
+                    e.target.classList.remove('valid');
+                    e.target.classList.add('invalid');
+                    gstError.style.display = 'block';
                 }
             });
 
-            // CVV
-            cvv.addEventListener('input', function(e) {
-                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            // Email Validation
+            invoiceEmail.addEventListener('input', function(e) {
+                const value = e.target.value.trim();
+                if (value.length === 0) {
+                    e.target.classList.remove('valid', 'invalid');
+                    emailError.style.display = 'none';
+                } else if (/^[a-zA-Z0-9][a-zA-Z0-9._%+\-]*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(value)) {
+                    e.target.classList.remove('invalid');
+                    e.target.classList.add('valid');
+                    emailError.style.display = 'none';
+                } else {
+                    e.target.classList.remove('valid');
+                    e.target.classList.add('invalid');
+                    emailError.style.display = 'block';
+                }
             });
 
-            // Validation
+            // Form Validation on Submit
             form.addEventListener('submit', function(e) {
                 // If clicking back, skip validation
                 if (e.submitter && e.submitter.value === 'back') {
                     return;
                 }
 
-                const rawCard = cardNumber.value.replace(/\D/g, '');
-                if (rawCard.length !== 16) {
+                let isValid = true;
+
+                // Validate GST if provided
+                const gstValue = gstNumber.value.trim();
+                if (gstValue.length > 0 && (gstValue.length !== 15 || !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstValue))) {
                     e.preventDefault();
-                    cardError.style.display = 'block';
-                    cardNumber.focus();
-                } else {
-                    cardError.style.display = 'none';
+                    gstError.style.display = 'block';
+                    gstNumber.classList.add('invalid');
+                    gstNumber.focus();
+                    isValid = false;
+                }
+
+                // Validate email if provided
+                const emailValue = invoiceEmail.value.trim();
+                if (emailValue.length > 0 && !/^[a-zA-Z0-9][a-zA-Z0-9._%+\-]*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(emailValue)) {
+                    e.preventDefault();
+                    emailError.style.display = 'block';
+                    invoiceEmail.classList.add('invalid');
+                    if (isValid) invoiceEmail.focus();
+                    isValid = false;
                 }
             });
         });

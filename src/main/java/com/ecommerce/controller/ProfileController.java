@@ -34,7 +34,8 @@ public class ProfileController {
     private AddressService addressService;
 
     @GetMapping
-    public String viewProfile(HttpSession session, Model model) {
+    public String viewProfile(@RequestParam(value = "tab", required = false) String tab,
+                            HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");
         
         if (userId == null) {
@@ -43,6 +44,11 @@ public class ProfileController {
 
         User user = userService.findById(userId);
         model.addAttribute("user", user);
+        
+        // If tab parameter is provided, set it in the model
+        if (tab != null) {
+            model.addAttribute("activeTab", tab);
+        }
 
         return "profile";
     }
@@ -65,7 +71,7 @@ public class ProfileController {
     public String updateProfile(@RequestParam String firstName,
                                @RequestParam String lastName,
                                @RequestParam String email,
-                               @RequestParam(required = false) String backupEmail,
+                               @RequestParam(required = false) String recoveryEmail,
                                @RequestParam String phone,
                                HttpSession session,
                                Model model) {
@@ -77,7 +83,7 @@ public class ProfileController {
 
         try {
             String fullName = firstName.trim() + " " + lastName.trim();
-            userService.updateProfile(userId, fullName, email, backupEmail, phone);
+            userService.updateProfile(userId, fullName, email, recoveryEmail, phone);
             session.setAttribute("userName", fullName);
             model.addAttribute("success", "Profile updated successfully!");
             
@@ -180,6 +186,14 @@ public class ProfileController {
 
         try {
             Address address = new Address(userId, line1, line2, city, state, postalCode, country, isDefault);
+            
+            // Automatically populate recipient name and phone with user's own details
+            User user = userService.findById(userId);
+            if (user != null) {
+                address.setRecipientName(user.getName());
+                address.setRecipientPhone(user.getPhone());
+            }
+            
             addressService.addAddress(address);
             model.addAttribute("success", "Address added successfully!");
         } catch (Exception e) {

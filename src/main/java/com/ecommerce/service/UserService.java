@@ -31,7 +31,8 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        User user = userRepository.findByEmailOrBackupEmail(email);
+        // Login only allowed with primary email, not recovery email
+        User user = userRepository.findByEmailForLogin(email);
         
         if (user == null) {
             return null; // User not found
@@ -53,22 +54,22 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public void updateProfile(Long userId, String name, String email, String backupEmail, String phone) {
+    public void updateProfile(Long userId, String name, String email, String recoveryEmail, String phone) {
         // Validate email format
         if (email == null || !email.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
             throw new RuntimeException("Invalid email format");
         }
         
-        // Validate backup email format if provided
-        if (backupEmail != null && !backupEmail.isEmpty()) {
-            if (!backupEmail.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
-                throw new RuntimeException("Invalid backup email format");
+        // Validate recovery email format if provided
+        if (recoveryEmail != null && !recoveryEmail.isEmpty()) {
+            if (!recoveryEmail.matches("^[a-zA-Z0-9][a-zA-Z0-9._%+\\-]*@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$")) {
+                throw new RuntimeException("Invalid recovery email format");
             }
-            if (backupEmail.equals(email)) {
-                throw new RuntimeException("Backup email cannot be the same as primary email");
+            if (recoveryEmail.equals(email)) {
+                throw new RuntimeException("Recovery email cannot be the same as primary email");
             }
         } else {
-             backupEmail = null; // Ensure empty string becomes null
+             recoveryEmail = null; // Ensure empty string becomes null
         }
         
         // Check if email is already used by another user
@@ -76,16 +77,16 @@ public class UserService {
             throw new RuntimeException("Email is already in use by another account");
         }
         
-        // Check if backup email is already used by another user (optional, but good practice)
-        if (backupEmail != null && userRepository.existsByEmailExcludingUserId(backupEmail, userId)) {
-            throw new RuntimeException("Backup email is already in use by another account");
+        // Check if recovery email is already used by another user (optional, but good practice)
+        if (recoveryEmail != null && userRepository.existsByEmailExcludingUserId(recoveryEmail, userId)) {
+            throw new RuntimeException("Recovery email is already in use by another account");
         }
         
         // Validate phone number format
         if (phone != null && !phone.matches("^[0-9]{10}$")) {
             throw new RuntimeException("Phone number must be exactly 10 digits");
         }
-        userRepository.updateProfile(userId, name, email, backupEmail, phone);
+        userRepository.updateProfile(userId, name, email, recoveryEmail, phone);
     }
 
     public boolean verifyPassword(Long userId, String password) {
@@ -112,16 +113,16 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
         
-        String backup = user.getBackupEmail();
+        String backup = user.getRecoveryEmail();
         if (backup == null || backup.isEmpty()) {
-            throw new RuntimeException("No backup email to swap with");
+            throw new RuntimeException("No recovery email to swap with");
         }
         
         String primary = user.getEmail();
         
-        // Check if new primary (old backup) is in use by someone else
+        // Check if new primary (old recovery) is in use by someone else
         if (userRepository.existsByEmailExcludingUserId(backup, userId)) {
-            throw new RuntimeException("Backup email is already associated with another account");
+            throw new RuntimeException("Recovery email is already associated with another account");
         }
         
         updateProfile(userId, user.getName(), backup, primary, user.getPhone());

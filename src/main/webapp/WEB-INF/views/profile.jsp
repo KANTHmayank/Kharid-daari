@@ -150,6 +150,10 @@
                                     <span class="info-value">${user.email}</span>
                                 </div>
                                 <div class="info-row">
+                                    <span class="info-label">Recovery Email:</span>
+                                    <span class="info-value">${user.recoveryEmail}</span>
+                                </div>
+                                <div class="info-row">
                                     <span class="info-label">Phone:</span>
                                     <span class="info-value">${user.phone}</span>
                                 </div>
@@ -200,12 +204,12 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="backupEmail">Backup Email</label>
-                                    <input type="email" id="backupEmail" name="backupEmail" value="${user.backupEmail}"
+                                    <label for="recoveryEmail">Recovery Email</label>
+                                    <input type="email" id="recoveryEmail" name="recoveryEmail" value="${user.recoveryEmail}"
                                         pattern="[a-zA-Z0-9][a-zA-Z0-9._%+\-]*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                                         title="Enter a valid email address">
-                                    <small class="form-text">Optional. Valid email address required.</small>
-                                    <c:if test="${not empty user.backupEmail}">
+                                    <small class="form-text">Optional. For account recovery only, cannot be used for login.</small>
+                                    <c:if test="${not empty user.recoveryEmail}">
                                         <div style="margin-top: 0.5rem;">
                                             <button type="button" class="btn btn-secondary"
                                                 onclick="document.getElementById('swap-email-form').submit();">Make
@@ -311,7 +315,7 @@
                         const firstName = document.getElementById('firstName').value;
                         const lastName = document.getElementById('lastName').value;
                         const phone = document.getElementById('phone').value;
-                        const backupEmail = document.getElementById('backupEmail').value;
+                        const recoveryEmail = document.getElementById('recoveryEmail').value;
 
                         if (!firstName.match(/^[A-Z][a-zA-Z]{1,49}$/)) {
                             alert('First name must start with a capital letter and be 2-50 characters');
@@ -324,8 +328,8 @@
                         }
 
                         const emailPattern = /^[a-zA-Z0-9][a-zA-Z0-9._%+\-]*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-                        if (backupEmail && !emailPattern.test(backupEmail)) {
-                            alert('Backup email must be a valid email address');
+                        if (recoveryEmail && !emailPattern.test(recoveryEmail)) {
+                            alert('Recovery email must be a valid email address');
                             return false;
                         }
 

@@ -101,10 +101,10 @@ public class CartService {
 
     private void updateCartTotal(Long cartId) {
         List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        BigDecimal total = items.stream()
-                .map(CartItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : items) {
+            total = total.add(item.getSubtotal());
+        }
         cartRepository.updateCartTotal(cartId, total);
     }
 
@@ -116,6 +116,10 @@ public class CartService {
         }
 
         List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        return items.stream().mapToInt(CartItem::getQuantity).sum();
+        int count = 0;
+        for (CartItem item : items) {
+            count += item.getQuantity();
+        }
+        return count;
     }
 }

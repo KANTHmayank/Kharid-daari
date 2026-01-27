@@ -9,9 +9,10 @@ CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    backup_email VARCHAR(100),
+    recovery_email VARCHAR(100),
     password_hash VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
+    dob DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -27,6 +28,8 @@ CREATE TABLE addresses (
     postal_code VARCHAR(20),
     country VARCHAR(100) NOT NULL,
     is_default TINYINT(1) DEFAULT 0,
+    recipient_name VARCHAR(100),
+    recipient_phone VARCHAR(20),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -97,10 +100,18 @@ CREATE TABLE order_items (
 CREATE TABLE payments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT UNIQUE NOT NULL,
+    payment_method VARCHAR(50) DEFAULT 'CARD',
     provider VARCHAR(50) DEFAULT 'MOCK_GATEWAY',
     reference_id VARCHAR(100),
+    amount DECIMAL(10, 2),
     status VARCHAR(50) DEFAULT 'PENDING',
-    paid_at TIMESTAMP NULL,
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    card_last_four VARCHAR(4),
+    card_name VARCHAR(100),
+    upi_id VARCHAR(100),
+    gst_number VARCHAR(15),
+    company_name VARCHAR(100),
+    invoice_email VARCHAR(100),
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 

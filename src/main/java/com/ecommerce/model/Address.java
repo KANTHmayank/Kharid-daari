@@ -10,6 +10,8 @@ public class Address {
     private String postalCode;
     private String country;
     private boolean isDefault;
+    private String recipientName;
+    private String recipientPhone;
 
     // Constructors
     public Address() {
@@ -102,6 +104,22 @@ public class Address {
 
     public void setDefault(boolean isDefault) {
         this.isDefault = isDefault;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public void setRecipientPhone(String recipientPhone) {
+        this.recipientPhone = recipientPhone;
     }
 
     // Helper method to get formatted address

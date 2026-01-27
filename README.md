@@ -1,6 +1,6 @@
 # Kharid-daari E-Commerce Platform
 
-A full-featured e-commerce web application built with **Spring MVC**, **JSP**, and **MySQL**.
+A full-featured e-commerce web application built with **Spring MVC**, **JSP**, and **MySQL**. Kharid-daari (खरीद-दारी) means "shopping" in Hindi, reflecting the platform's purpose as a comprehensive online shopping solution.
 
 ---
 
@@ -11,6 +11,7 @@ A full-featured e-commerce web application built with **Spring MVC**, **JSP**, a
 - [Project Structure](#-project-structure)
 - [Database Schema](#-database-schema)
 - [Application URLs](#-application-urls)
+- [Checkout Flow](#-checkout-flow)
 - [Security](#-security)
 - [Testing](#-testing)
 - [Troubleshooting](#-troubleshooting)
@@ -18,6 +19,7 @@ A full-featured e-commerce web application built with **Spring MVC**, **JSP**, a
 - [Database & JDBC Driver](#-database--jdbc-driver)
 - [Enhanced Security Details](#-enhanced-security-details)
 - [Application Architecture Flow](#-application-architecture-flow)
+- [Future Scope](#-future-scope)
 
 ---
 
@@ -26,46 +28,75 @@ A full-featured e-commerce web application built with **Spring MVC**, **JSP**, a
 **Implemented** ✅
 
 ### User Authentication & Profile Management
-- User Registration with comprehensive validation
+- **User Registration** with comprehensive validation
   - Email validation (proper domain format, no special char start)
   - Name validation (first & last name, capital letter start, 2-50 chars)
   - Phone validation (exactly 10 digits)
+  - **Date of Birth** field for user profile enrichment
   - Password strength requirements (8+ chars, uppercase, lowercase, digit, special char)
   - Real-time password confirmation matching with visual feedback
-- User Login/Logout with session management
-- BCrypt password encryption (10 rounds)
-- User Profile Management
-  - View profile details (name, email, phone, member since)
+- **User Login/Logout** with session management
+- **BCrypt password encryption** (10 rounds)
+- **User Profile Management**
+  - View profile details (name, email, phone, date of birth, member since)
   - Edit profile (update first name, last name, email, phone)
   - Change password with current password verification
+  - Recovery email management
   - Address management (add, edit, delete, set default)
   - Order history with detailed item information and status tracking
 
 ### Product Catalog & Shopping
-- Product Catalog with images, prices, and stock levels
-- Advanced Product Filtering
+- **Product Catalog** with images, prices, and stock levels
+- **Advanced Product Filtering**
   - Price ranges (Under $50, $50-$100, $100-$200, Over $200)
   - Availability (All, In Stock, Out of Stock)
-- Product Sorting (Name A-Z/Z-A, Price Low-High/High-Low, Stock High-Low)
-- Add to Cart with quantity selection and stock validation
-- Shopping Cart Management
+- **Product Sorting** (Name A-Z/Z-A, Price Low-High/High-Low, Stock High-Low)
+- **Add to Cart** with quantity selection and stock validation
+- **Shopping Cart Management**
   - View cart with item details and pricing
-  - Update item quantities
+  - Update item quantities with real-time subtotal calculation
   - Remove individual items
   - Clear entire cart
   - Cart count badge in header
   - Database persistence (survives session timeout)
+  - Empty cart detection with helpful messaging
+
+### Checkout & Order Management
+- **Multi-Step Checkout Process**
+  - **Shipping Address Selection**: Choose from saved addresses or add new address during checkout
+  - **Contact Information**: Primary mobile (auto-populated from registration), optional alternate contact
+  - **Billing Address**: Use same as shipping or select different address
+  - **Payment Method Selection**: Credit/Debit Card, Net Banking, UPI, Cash on Delivery
+  - **Order Review**: Review all details before placing order
+- **Order Placement**
+  - Order creation with unique order IDs
+  - Order items tracking
+  - Cart clearing after successful order
+  - Order confirmation page with order summary
+- **Order History**
+  - View all past orders
+  - Order status tracking (Pending, Processing, Shipped, Delivered, Cancelled)
+  - Detailed order items with product information
+  - Order date and total amount display
 
 ### Additional Features
-- Contact Form submission
-- Responsive design (mobile, tablet, desktop)
-- Home Page with featured products (6 items)
+- **About Page** with company information
+- **Contact Form** submission with database storage
+- **Responsive Design** (mobile, tablet, desktop)
+- **Home Page** with featured products (6 items)
+- **Session Management** with user-friendly redirects
+- **Error Handling** with informative messages
 
-**Planned** 🔜
-- Checkout Process
-- Payment Gateway Integration
-- Order Placement & Tracking
-- Admin Dashboard
+### Architecture & Design
+- **UML Diagrams** for system design
+  - Use Case Diagram (`01_usecase.puml`)
+  - Class Diagram (`02_class.mmd`)
+  - Sequence Diagrams for Add to Cart and Checkout flows
+  - Entity-Relationship Diagram (`05_erd.mmd`)
+- **MVC Architecture** with clear separation of concerns
+- **RESTful URL patterns**
+- **JDBC Template** for database operations
+- **Prepared Statements** for SQL injection prevention
 
 ---
 
@@ -111,10 +142,17 @@ dataSource.setPassword("your_mysql_password");  // Update this
 # Create database
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ecommerce;"
 
-# Run scripts
+# Run main schema
 mysql -u root -p ecommerce < src/main/resources/database.sql
+
+# Add sample products
 mysql -u root -p ecommerce < src/main/resources/insert_sample_products.sql
+
+# Update product images
 mysql -u root -p ecommerce < src/main/resources/update_product_images.sql
+
+# Add DOB field to users table (if upgrading)
+mysql -u root -p ecommerce < src/main/resources/database_update_dob.sql
 ```
 
 **3. Build & Run**
@@ -207,26 +245,25 @@ Kharid-daari/
 
 **Database:** `ecommerce` (9 tables)
 
-| Table | Purpose | Status |
-|-------|---------|--------|
-| users | User accounts | ✅ |
-| addresses | Shipping addresses | ✅ |
-| products | Product catalog | ✅ |
-| contact_messages | Customer inquiries | ✅ |
-| carts | Shopping cart | ✅ |
-| cart_items | Cart line items | ✅ |
-| orders | Order records | ✅ |
-| order_items | Order line items | ✅ |
-| payments | Payment transactions | 🔜 |
+| Table | Purpose | Fields | Status |
+|-------|---------|--------|--------|
+| users | User accounts | id, name, email, recovery_email, password_hash, phone, **dob**, created_at, updated_at | ✅ |
+| addresses | Shipping addresses | id, user_id, line1, line2, city, state, postal_code, country, is_default, recipient_name, recipient_phone | ✅ |
+| products | Product catalog | id, sku, name, description, price, stock, image_url, active, created_at | ✅ |
+| contact_messages | Customer inquiries | id, name, email, message, submitted_at | ✅ |
+| carts | Shopping cart | id, user_id, created_at, updated_at | ✅ |
+| cart_items | Cart line items | id, cart_id, product_id, quantity, added_at | ✅ |
+| orders | Order records | id, user_id, order_number, total_amount, status, shipping_address_id, billing_address_id, primary_mobile, alternate_mobile, alternate_contact_name, payment_method, created_at | ✅ |
+| order_items | Order line items | id, order_id, product_id, quantity, price_at_time, subtotal | ✅ |
+| payments | Payment transactions | id, order_id, amount, payment_method, transaction_id, status, payment_date | ✅ |
 
-**Relationships:**
+**Key Relationships:**
 ```
 USERS (1) ──→ (*) ADDRESSES
 USERS (1) ──→ (1) CARTS ──→ (*) CART_ITEMS ←── (*) PRODUCTS
 USERS (1) ──→ (*) ORDERS ──→ (*) ORDER_ITEMS ←── (*) PRODUCTS
-ORDERS (1) ──→ (1) PAYMENTS
-```
-ORDERS (1) ──→ (1) PAYMENTS
+ORDERS (1) ──→ (1) PAYMENTS (planned)
+ORDERS (*) ──→ (1) ADDRESSES (shipping & billing)
 ```
 
 **Sample Products:**
@@ -241,22 +278,74 @@ ORDERS (1) ──→ (1) PAYMENTS
 
 ## 🌐 Application URLs
 
-| Page | URL | Description |
-|------|-----|-------------|
-| Home | `/` | Landing page with featured products |
-| Products | `/products` | Complete catalog with filtering & sorting |
-| Cart | `/cart` | Shopping cart management |
-| Profile | `/profile` | User profile with tabs |
-| Profile Details | `/profile#details` | View account information |
-| Edit Profile | `/profile#edit` | Update name, email, phone |
-| Change Password | `/profile#password` | Change account password |
-| Addresses | `/profile/addresses` | Manage shipping addresses |
-| Order History | `/profile/orders` | View past orders |
-| Login | `/login` | User authentication |
-| Register | `/register` | New user signup |
-| Contact | `/contact` | Contact form |
-| About | `/about` | Company info |
-| Logout | `/logout` | End session |
+| Page | URL | Description | Auth Required |
+|------|-----|-------------|---------------|
+| Home | `/` | Landing page with featured products | No |
+| Products | `/products` | Complete catalog with filtering & sorting | No |
+| Cart | `/cart` | Shopping cart management | Yes |
+| Profile | `/profile` | User profile with tabs | Yes |
+| Profile Details | `/profile#details` | View account information | Yes |
+| Edit Profile | `/profile#edit` | Update name, email, phone | Yes |
+| Change Password | `/profile#password` | Change account password | Yes |
+| Addresses | `/profile/addresses` | Manage shipping addresses | Yes |
+| Order History | `/profile/orders` | View past orders | Yes |
+| Checkout Start | `/checkout` | Start checkout process | Yes |
+| Checkout Shipping | `/checkout/shipping` | Select shipping address & contact | Yes |
+| Checkout Billing | `/checkout/billing` | Select billing address | Yes |
+| Checkout Payment | `/checkout/payment` | Select payment method | Yes |
+| Checkout Review | `/checkout/review` | Review order before placement | Yes |
+| Place Order | `/checkout/place-order` | Complete order | Yes |
+| Order Success | `/checkout/order-success` | Order confirmation page | Yes |
+| Login | `/login` | User authentication | No |
+| Register | `/register` | New user signup | No |
+| Contact | `/contact` | Contact form | No |
+| About | `/about` | Company information | No |
+| Logout | `/logout` | End session | Yes |
+
+---
+
+## 🛒 Checkout Flow
+
+The platform implements a comprehensive 5-step checkout process:
+
+### Step 1: Checkout Initiation (`/checkout`)
+- Validates user authentication
+- Checks cart is not empty
+- Redirects to shipping page
+
+### Step 2: Shipping Address & Contact (`/checkout/shipping`)
+- Select from existing addresses or add new address
+- Primary mobile number (auto-populated from user registration)
+- Optional alternate contact details (name and mobile)
+- Address details stored in session
+
+### Step 3: Billing Address (`/checkout/billing`)
+- Option to use same as shipping address
+- Or select different billing address
+- Cart summary display with item details and totals
+- Billing information stored in session
+
+### Step 4: Payment Method (`/checkout/payment`)
+- **Payment Options:**
+  - Credit/Debit Card
+  - Net Banking
+  - UPI
+  - Cash on Delivery (COD)
+- Order summary review
+- Total amount display
+
+### Step 5: Order Review & Placement (`/checkout/place-order`)
+- Final order review
+- Order creation with unique order number (format: ORD-YYYYMMDD-XXXX)
+- Order items saved to database
+- Cart cleared after successful order
+- Redirect to order success page
+
+### Order Confirmation (`/checkout/order-success`)
+- Display order confirmation
+- Order details summary
+- Order number for tracking
+- Link to order history
 
 ---
 
@@ -294,6 +383,7 @@ Browser → Controllers → Services → Repositories → MySQL
    - First Name: John (must start with capital, 2-50 chars)
    - Last Name: Doe (must start with capital, 2-50 chars)
    - Email: john@example.com (valid email format)
+   - **Date of Birth**: Select date from calendar picker
    - Phone: 1234567890 (exactly 10 digits)
    - Password: Test@123 (8+ chars, uppercase, lowercase, digit, special char)
    - Confirm Password: Test@123 (real-time matching indicator)
@@ -326,15 +416,16 @@ Browser → Controllers → Services → Repositories → MySQL
 
 ### Scenario 5: User Profile Management
 1. Click "My Profile" in header
-2. Test Profile Details tab:
-   - View name, email, phone, member since date
-3. Test Edit Profile tab:
+2. **Test Profile Details tab:**
+   - View name, email, phone, **date of birth**, member since date
+3. **Test Edit Profile tab:**
    - Update first name: Jane
    - Update last name: Smith
    - Update email: jane@example.com
+   - Update recovery email: recovery@example.com
    - Update phone: 9876543210
    - Submit → Verify success message
-4. Test Change Password tab:
+4. **Test Change Password tab:**
    - Enter current password
    - Enter new password: NewTest@456
    - Confirm new password (watch real-time matching)
@@ -350,6 +441,8 @@ Browser → Controllers → Services → Repositories → MySQL
    - State: NY (optional)
    - Postal Code: 10001 (optional)
    - Country: USA
+   - Recipient Name: John Doe
+   - Recipient Phone: 1234567890
    - Check "Set as default"
 4. Submit → Verify address card displayed with "Default" badge
 5. Add another address → Click "Set Default"
@@ -357,19 +450,59 @@ Browser → Controllers → Services → Repositories → MySQL
 7. Delete non-default address → Confirm deletion
 8. Verify: `SELECT * FROM addresses WHERE user_id = <id>;`
 
-### Scenario 7: Order History
-1. Go to Order History tab
-2. View orders (if any exist in database)
-3. Verify order details: ID, date, status, items, pricing
+### Scenario 7: Complete Checkout Process
+1. **Add items to cart** (minimum 1 product)
+2. Click cart icon → Click "Proceed to Checkout"
+3. **Shipping Page:**
+   - Select shipping address (or add new address)
+   - Verify primary mobile auto-populated
+   - Optionally add alternate contact details
+   - Click "Continue to Billing"
+4. **Billing Page:**
+   - Option 1: Check "Same as shipping address"
+   - Option 2: Select different billing address
+   - Review cart summary
+   - Click "Continue to Payment"
+5. **Payment Page:**
+   - Select payment method (COD, Credit Card, UPI, Net Banking)
+   - Review order summary with total amount
+   - Click "Review Order"
+6. **Place Order:**
+   - Final review of all details
+   - Click "Place Order"
+   - Redirect to order success page
+7. **Order Confirmation:**
+   - Note order number (format: ORD-YYYYMMDD-XXXX)
+   - Verify order details displayed
+8. **Verify Database:**
+   ```sql
+   SELECT * FROM orders WHERE user_id = <id> ORDER BY created_at DESC LIMIT 1;
+   SELECT * FROM order_items WHERE order_id = <order_id>;
+   SELECT * FROM carts WHERE user_id = <id>; -- Should have no items
+   ```
 
-### Scenario 8: Contact Form
-1. Go to `/contact`, submit form
-2. Verify: `SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 1;`
+### Scenario 8: Order History
+1. Go to Order History tab in profile
+2. View all placed orders
+3. Verify order details: 
+   - Order number
+   - Order date
+   - Order status (Pending, Processing, Shipped, Delivered, Cancelled)
+   - Items with product names, quantities, and prices
+   - Total amount
 
-### Scenario 9: Session & Logout
+### Scenario 9: Contact Form
+1. Go to `/contact`
+2. Fill form with name, email, and message
+3. Submit form
+4. Verify success message
+5. Verify: `SELECT * FROM contact_messages ORDER BY submitted_at DESC LIMIT 1;`
+
+### Scenario 10: Session & Logout
 1. Login → Navigate pages → Logout
 2. Verify session cleared
 3. Try accessing `/profile` → Redirect to login
+4. Try accessing `/checkout` → Redirect to login
 
 ---
 
@@ -491,20 +624,229 @@ Browser → DispatcherServlet → Controller → Service → Repository → MySQ
 
 **Data Flow (User Registration):**
 1. Form submission → `AuthController.register()`
-2. Validation → `UserService.register()`
-3. Password hash → `UserRepository.save()`
-4. SQL INSERT with `PreparedStatement`
-5. Retrieve generated ID → Return complete User object
+2. Validation (name, email, phone, password, DOB format)
+3. `UserService.register()` - password hashing
+4. `UserRepository.save()` - database insertion
+5. SQL INSERT with `PreparedStatement` including DOB field
+6. Retrieve generated ID → Return complete User object
 
 **Key Components:**
-- **Controllers:** 5 (Home, Auth, Contact, Cart, Profile)
-- **Services:** 6 (User, Product, Contact, Cart, Address, Order)
-- **Repositories:** 7 (User, Product, Contact, Cart, CartItem, Address, Order)
-- **Models:** 8 (User, Product, ContactMessage, Cart, CartItem, Address, Order, OrderItem)
-- **Views:** 13 JSP pages (home, products, cart, profile, addresses, orders, login, register, contact, about, + header/footer includes)
+- **Controllers:** 6
+  - HomeController (landing page, products)
+  - AuthController (login, register, logout)
+  - ContactController (contact form)
+  - CartController (add, update, remove, clear cart)
+  - ProfileController (profile, addresses, orders, password change)
+  - CheckoutController (shipping, billing, payment, order placement)
+  
+- **Services:** 7
+  - UserService (authentication, profile management)
+  - ProductService (product catalog, filtering, sorting)
+  - ContactService (contact message handling)
+  - CartService (cart operations, persistence)
+  - AddressService (address CRUD operations)
+  - OrderService (order creation, retrieval, status management)
+  - PaymentService (payment processing - planned)
+  
+- **Repositories:** 8
+  - UserRepository
+  - ProductRepository
+  - ContactMessageRepository
+  - CartRepository
+  - CartItemRepository
+  - AddressRepository
+  - OrderRepository
+  - PaymentRepository (planned)
+  
+- **Models:** 9
+  - User (with DOB field)
+  - Product
+  - ContactMessage
+  - Cart
+  - CartItem
+  - Address
+  - Order
+  - OrderItem
+  - Payment
+  
+- **Views:** 16 JSP pages
+  - Public: home, products, about, contact, login, register
+  - Protected: cart, profile, addresses, orders
+  - Checkout: checkout-shipping, checkout-billing, checkout-payment, checkout-review, order-success
+  - Includes: header, footer
+
+**Session Management:**
+- User authentication state (userId, userName, userEmail)
+- Shopping cart persistence
+- Checkout flow data (shipping address, billing address, contact info, payment method)
 
 ---
 
-**Version:** 1.0-SNAPSHOT  
-**Last Updated:** January 14, 2026  
+## 🚀 Future Scope
+
+### Phase 1: Enhanced User Experience (High Priority)
+1. **Email Notifications**
+   - Order confirmation emails
+   - Password reset emails
+   - Shipping updates
+
+2. **Product Reviews & Ratings**
+   - User reviews on products
+   - Star rating system
+   - Review moderation
+
+3. **Wishlist Feature**
+   - Save products for later
+   - Move items between cart and wishlist
+   - Share wishlist
+
+4. **Search Functionality**
+   - Product search by name/description
+   - Auto-complete suggestions
+   - Search filters
+
+### Phase 2: Business Intelligence (Medium Priority)
+5. **Admin Dashboard**
+   - Sales analytics and reports
+   - Product inventory management
+   - User management
+   - Order management (update status, cancel orders)
+   - Revenue tracking
+
+6. **Order Tracking**
+   - Real-time order status updates
+   - Shipment tracking integration
+   - Estimated delivery dates
+   - Order cancellation requests
+
+7. **Advanced Analytics**
+   - Customer purchase patterns
+   - Popular products tracking
+   - Revenue by product category
+   - Cart abandonment tracking
+
+### Phase 3: Payment & Security (High Priority)
+8. **Payment Gateway Integration**
+   - Actual payment processing (currently mock)
+   - Integration with Razorpay/Stripe/PayPal
+   - Payment failure handling and retry
+   - Refund processing
+
+9. **Enhanced Security**
+   - Two-factor authentication (2FA)
+   - CAPTCHA on login/registration
+   - Rate limiting for API endpoints
+   - Session timeout warnings
+
+10. **Password Recovery**
+    - Forgot password functionality using recovery email
+    - Secure token-based reset links
+    - Password history tracking
+
+### Phase 4: Advanced Features (Low Priority)
+11. **Multi-vendor Support**
+    - Vendor registration and management
+    - Separate vendor dashboards
+    - Commission management
+
+12. **Loyalty Program**
+    - Points on purchases
+    - Referral rewards
+    - Tier-based benefits
+
+13. **Social Features**
+    - Social login (Google, Facebook)
+    - Share products on social media
+    - Social proof (X people bought this)
+
+14. **Mobile App**
+    - Native Android/iOS apps
+    - Push notifications
+    - Mobile-specific features
+
+15. **Internationalization**
+    - Multi-language support
+    - Multi-currency support
+    - Region-specific pricing
+
+### Phase 5: Performance & Scalability
+16. **Caching Layer**
+    - Redis for session management
+    - Product catalog caching
+    - Frequently accessed data caching
+
+17. **API Development**
+    - RESTful API for mobile apps
+    - API documentation (Swagger)
+    - Rate limiting and authentication
+
+18. **Microservices Architecture**
+    - Decompose monolith into microservices
+    - User service, Order service, Product service
+    - Event-driven architecture
+
+19. **CDN Integration**
+    - Product images on CDN
+    - Static assets optimization
+    - Global content delivery
+
+### Technical Improvements
+20. **Testing Suite**
+    - Unit tests (JUnit)
+    - Integration tests
+    - Selenium for UI testing
+    - Code coverage reports
+
+21. **CI/CD Pipeline**
+    - Automated builds
+    - Automated deployments
+    - Environment management (dev, staging, prod)
+
+22. **Logging & Monitoring**
+    - Centralized logging (ELK stack)
+    - Application performance monitoring
+    - Error tracking (Sentry)
+    - Uptime monitoring
+
+23. **Database Optimization**
+    - Query optimization
+    - Indexing strategy
+    - Connection pooling
+    - Database sharding for scalability
+
+
+
+---
+
+**Version:** 2.0-SNAPSHOT  
+**Last Updated:** January 27, 2026  
+**Author:** Cognizant Technical Training  
 **License:** Educational/Evaluation purposes
+
+**Key Achievements:**
+- ✅ Complete user authentication and authorization system
+- ✅ Full-featured shopping cart with database persistence
+- ✅ Multi-step checkout process with order placement
+- ✅ Comprehensive user profile management
+- ✅ Address management system
+- ✅ Order history and tracking
+- ✅ Responsive design for all screen sizes
+- ✅ Secure password handling with BCrypt
+- ✅ SQL injection prevention with prepared statements
+- ✅ Session-based state management
+
+**Technologies Demonstrated:**
+- Spring MVC 5.3.27
+- JDBC Template for database operations
+- JSP/JSTL for server-side rendering
+- MySQL 8.0 for data persistence
+- BCrypt for password encryption
+- Maven for build management
+- Tomcat 9.x for application server
+
+**Repository Structure:**
+- `/src` - Application source code
+- `/target` - Compiled artifacts and WAR file
+- `/*.puml` - PlantUML use case diagrams
+- `/*.mmd` - Mermaid class and sequence diagrams
+- `/README.md` - This documentation

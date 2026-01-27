@@ -68,6 +68,7 @@ public class AuthController {
                           @RequestParam String password,
                           @RequestParam String confirmPassword,
                           @RequestParam String phone,
+                          @RequestParam String dob,
                           Model model) {
         try {
             // Server-side validation for phone number (exactly 10 digits)
@@ -92,6 +93,16 @@ public class AuthController {
             String fullName = firstName.trim() + " " + lastName.trim();
             
             User user = new User(fullName, email, password, phone);
+            
+            // Parse and set date of birth
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                user.setDob(sdf.parse(dob));
+            } catch (Exception e) {
+                model.addAttribute("error", "Invalid date of birth format");
+                return "register";
+            }
+            
             userService.register(user);
             
             model.addAttribute("success", "Registration successful! Please login.");

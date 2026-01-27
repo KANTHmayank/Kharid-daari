@@ -59,7 +59,11 @@ public class Cart implements Serializable {
     }
 
     public int getItemCount() {
-        return items.stream().mapToInt(CartItem::getQuantity).sum();
+        int count = 0;
+        for (CartItem item : items) {
+            count += item.getQuantity();
+        }
+        return count;
     }
 
     // Getters and Setters

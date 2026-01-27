@@ -29,6 +29,8 @@ public class AddressRepository {
         address.setPostalCode(rs.getString("postal_code"));
         address.setCountry(rs.getString("country"));
         address.setDefault(rs.getBoolean("is_default"));
+        address.setRecipientName(rs.getString("recipient_name"));
+        address.setRecipientPhone(rs.getString("recipient_phone"));
         return address;
     };
 
@@ -56,8 +58,8 @@ public class AddressRepository {
     }
 
     public Long create(Address address) {
-        String sql = "INSERT INTO addresses (user_id, line1, line2, city, state, postal_code, country, is_default) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO addresses (user_id, line1, line2, city, state, postal_code, country, is_default, recipient_name, recipient_phone) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
@@ -70,6 +72,8 @@ public class AddressRepository {
             ps.setString(6, address.getPostalCode());
             ps.setString(7, address.getCountry());
             ps.setBoolean(8, address.isDefault());
+            ps.setString(9, address.getRecipientName());
+            ps.setString(10, address.getRecipientPhone());
             return ps;
         }, keyHolder);
         
@@ -78,10 +82,10 @@ public class AddressRepository {
 
     public void update(Address address) {
         String sql = "UPDATE addresses SET line1 = ?, line2 = ?, city = ?, state = ?, " +
-                     "postal_code = ?, country = ?, is_default = ? WHERE id = ?";
+                     "postal_code = ?, country = ?, is_default = ?, recipient_name = ?, recipient_phone = ? WHERE id = ?";
         jdbcTemplate.update(sql, address.getLine1(), address.getLine2(), address.getCity(),
                 address.getState(), address.getPostalCode(), address.getCountry(),
-                address.isDefault(), address.getId());
+                address.isDefault(), address.getRecipientName(), address.getRecipientPhone(), address.getId());
     }
 
     public void delete(Long id) {

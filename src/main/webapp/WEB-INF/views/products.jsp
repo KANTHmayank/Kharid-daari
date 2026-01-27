@@ -116,10 +116,10 @@
                                 <label for="priceFilter">Filter by Price:</label>
                                 <select id="priceFilter" onchange="filterAndSort()">
                                     <option value="all">All Prices</option>
-                                    <option value="0-50">Under ₹50</option>
-                                    <option value="50-100">₹50 - ₹100</option>
-                                    <option value="100-200">₹100 - ₹200</option>
-                                    <option value="200+">Over ₹200</option>
+                                    <option value="0-2000">Under ₹2,000</option>
+                                    <option value="2000-5000">₹2,000 - ₹5,000</option>
+                                    <option value="5000-10000">₹5,000 - ₹10,000</option>
+                                    <option value="10000+">Over ₹10,000</option>
                                 </select>
 
                                 <label for="stockFilter">Availability:</label>
@@ -145,7 +145,9 @@
 
                         <div class="products-grid" id="productsGrid">
                             <c:forEach var="product" items="${products}">
+                                <c:set var="availableStock" value="${product.stock - (cartQuantities[product.id] != null ? cartQuantities[product.id] : 0)}" />
                                 <div class="product-card" data-price="${product.price}" data-stock="${product.stock}"
+                                    data-available-stock="${availableStock}"
                                     data-name="${product.name}" data-product-id="${product.id}">
                                     <img src="${product.imageUrl}" alt="${product.name}">
                                     <div class="product-info">
@@ -156,7 +158,6 @@
                                                 <fmt:formatNumber value="${product.price}" type="number"
                                                     minFractionDigits="2" maxFractionDigits="2" />
                                             </span>
-                                            <c:set var="availableStock" value="${product.stock - (cartQuantities[product.id] != null ? cartQuantities[product.id] : 0)}" />
                                             <c:choose>
                                                 <c:when test="${availableStock > 0}">
                                                     <span class="stock in-stock">In Stock (${availableStock})</span>
@@ -208,20 +209,20 @@
                         products.forEach(product => {
                             let showProduct = true;
                             const price = parseFloat(product.dataset.price);
-                            const stock = parseInt(product.dataset.stock);
+                            const availableStock = parseInt(product.dataset.availableStock);
 
                             // Price filter
                             if (priceFilter !== 'all') {
-                                if (priceFilter === '0-50' && price >= 50) showProduct = false;
-                                else if (priceFilter === '50-100' && (price < 50 || price >= 100)) showProduct = false;
-                                else if (priceFilter === '100-200' && (price < 100 || price >= 200)) showProduct = false;
-                                else if (priceFilter === '200+' && price < 200) showProduct = false;
+                                if (priceFilter === '0-2000' && price >= 2000) showProduct = false;
+                                else if (priceFilter === '2000-5000' && (price < 2000 || price >= 5000)) showProduct = false;
+                                else if (priceFilter === '5000-10000' && (price < 5000 || price >= 10000)) showProduct = false;
+                                else if (priceFilter === '10000+' && price < 10000) showProduct = false;
                             }
 
-                            // Stock filter
+                            // Stock filter - use available stock instead of total stock
                             if (stockFilter !== 'all') {
-                                if (stockFilter === 'instock' && stock <= 0) showProduct = false;
-                                else if (stockFilter === 'outofstock' && stock > 0) showProduct = false;
+                                if (stockFilter === 'instock' && availableStock <= 0) showProduct = false;
+                                else if (stockFilter === 'outofstock' && availableStock > 0) showProduct = false;
                             }
 
                             product.style.display = showProduct ? 'block' : 'none';
@@ -297,6 +298,9 @@
                                             const match = stockText.match(/\d+/);
                                             const currentStock = match ? parseInt(match[0]) : 0;
                                             const newStock = currentStock - quantity;
+                                            
+                                            // Update data-available-stock attribute for filters
+                                            productCard.setAttribute('data-available-stock', newStock);
                                             
                                             if (newStock > 0) {
                                                 stockBadge.textContent = 'In Stock (' + newStock + ')';

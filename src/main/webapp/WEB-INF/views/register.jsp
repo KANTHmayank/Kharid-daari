@@ -36,6 +36,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email">Date Of Birth</label>
+                    <input type="date" id="dob" name="dob" required placeholder="Enter your DOB" pattern="" title="">
+                    <!-- <small class="form-text">Must be a valid email address (e.g., </small> -->
+                </div>
+
+                <div class="form-group">
                     <label for="phone">Phone Number</label>
                     <input type="tel" id="phone" name="phone" required placeholder="Enter 10-digit phone number" pattern="[0-9]{10}" title="Phone number must be exactly 10 digits">
                     <small class="form-text">Must be exactly 10 digits</small>
